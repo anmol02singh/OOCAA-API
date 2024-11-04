@@ -1,0 +1,1 @@
+module.exports = ['Event1', 'Event2', 'Event3'];
