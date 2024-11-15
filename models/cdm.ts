@@ -8,7 +8,7 @@ const cdmSchema = new mongoose.Schema({
     messageId: { type: String },
     tca: { type: Date }, // Time of Closest Approach
     missDistance: { type: Number }, // Minimum distance at closest approach
-    event: { type: String},
+    event: { type: String },
     satellite1: { type: satelliteSchema },
     satellite2: { type: satelliteSchema }
 });
