@@ -1,17 +1,22 @@
+import { Router, Request, Response, NextFunction } from 'express';
 const cdmService = require('../services/cdmService');
 const events = require('../config/events');
 
-async function saveCDMData(req, res) {
+async function saveCDMData(req: Request, res: Response) {
     const { event } = req.params;
     try {
         const savedData = await cdmService.saveCDMDataToDB(event);
         res.status(201).json(savedData);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+	if (error instanceof Error) {
+		res.status(500).json({ message: error.message });
+	} else {
+		res.status(500).json({ message: "Unknown Error" });
+	}
     }
 };
 
-async function getAllCDMData(req, res) {
+async function getAllCDMData(req: Request, res: Response) {
     try {
         const data = await cdmService.fetchAllCDMData();
         if (!data) {
@@ -19,11 +24,15 @@ async function getAllCDMData(req, res) {
         }
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+	if (error instanceof Error) {
+		res.status(500).json({ message: error.message });
+	} else {
+		res.status(500).json({ message: "Unknown Error" });
+	}
     }
 };
 
-async function getCDMDataById(req, res) {
+async function getCDMDataById(req: Request, res: Response) {
     try {
         const data = await cdmService.fetchCDMDataById(req.params.id);
         if (!data) {
@@ -31,19 +40,27 @@ async function getCDMDataById(req, res) {
         }
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+	if (error instanceof Error) {
+		res.status(500).json({ message: error.message });
+	} else {
+		res.status(500).json({ message: "Unknown Error" });
+	}
     }
 };
 
-async function getEvents(req, res) { //save events to db?? no
+async function getEvents(req: Request, res: Response) { //save events to db?? no
     try {
         res.json(events);
     } catch (error) {
-        res.status(500).json({ message: error.message});
+	if (error instanceof Error) {
+		res.status(500).json({ message: error.message });
+	} else {
+		res.status(500).json({ message: "Unknown Error" });
+	}
     }
 };
 
-async function getCDMDataByEvent(req, res) {
+async function getCDMDataByEvent(req: Request, res: Response) {
     const { event } = req.params;
     try {
         if (!event) {
@@ -52,7 +69,11 @@ async function getCDMDataByEvent(req, res) {
         const data = await cdmService.fetchCDMDataByEvent(event);
         res.json(data);
     } catch (error) {
-        res.status(500).json({ message: error.message});
+	if (error instanceof Error) {
+		res.status(500).json({ message: error.message });
+	} else {
+		res.status(500).json({ message: "Unknown Error" });
+	}
     }
 };
 
