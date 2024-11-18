@@ -1,8 +1,9 @@
+import { Types } from 'mongoose';
 const cdmRepository = require('../repositories/cdmRepository');
 const axios = require('axios');
 const fileIds = require('../config/fileIds');
 
-function parseDate(dateString) {
+function parseDate(dateString: string) {
     if (!dateString) {
         return null;
     }
@@ -11,11 +12,10 @@ function parseDate(dateString) {
         dateString += "Z";
     }
     
-    const date = new Date(dateString);
-    return isNaN(date) ? null : date;
+    return new Date(dateString);
 };
 
-async function fetchCDMDataFromDrive(event, index) {
+async function fetchCDMDataFromDrive(event: string, index: number) {
     const fileId = fileIds[event][index];
     const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
 
@@ -26,16 +26,18 @@ async function fetchCDMDataFromDrive(event, index) {
         const data = Array.isArray(dataArray) ? dataArray[0] : dataArray;
         return data;
     } catch (error) {
-        console.error(`Error fetching CDM data from Google Drive for ${event}, file ${index}:`, error.message);
+	if (error instanceof Error) {
+             console.error(`Error fetching CDM data from Google Drive for ${event}, file ${index}:`, error.message);
+	}
         throw new Error('Unable to fetch data from Google Drive');
     }
 };
 
-async function saveCDMDataToDB(event) {
+async function saveCDMDataToDB(event: string) {
     if (!fileIds[event]) {
         console.error(`${event} does not exist`);
     }
-    const dataPromises = fileIds[event].map((_, index) => fetchCDMDataFromDrive(event, index));
+    const dataPromises = fileIds[event].map((_: string, index: number) => fetchCDMDataFromDrive(event, index));
 
     try {
         const allData = await Promise.all(dataPromises);
@@ -147,12 +149,14 @@ async function saveCDMDataToDB(event) {
         );
         return savedData;
     } catch (error) {
-        console.error('Error saving CDM data to database:', error.message);
+	if (error instanceof Error) {
+            console.error('Error saving CDM data to database:', error.message);
+	}
         throw new Error('Unable to save CDM data');
     }
 };
 
-async function fetchCDMDataByEvent(event) {
+async function fetchCDMDataByEvent(event: string) {
     return await cdmRepository.getCDMDataByEvent(event);
 };
 
@@ -160,7 +164,7 @@ async function fetchAllCDMData() {
     return await cdmRepository.getAllCDMData();
 };
 
-async function fetchCDMDataById(id) {
+async function fetchCDMDataById(id: Types.ObjectId) {
     return await cdmRepository.getCDMDataById(id);
 };
 
