@@ -1,7 +1,7 @@
 import { Types } from 'mongoose';
-const cdmRepository = require('../repositories/cdmRepository');
-const axios = require('axios');
-const fileIds = require('../config/fileIds');
+import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent } from '../repositories/cdmRepository';
+import axios from 'axios';
+import fileIds  from '../config/fileIds';
 
 function parseDate(dateString: string) {
     if (!dateString) {
@@ -144,7 +144,7 @@ async function saveCDMDataToDB(event: string) {
                     }
                 };
 
-                return cdmRepository.saveCDMData(newData);
+                return saveCDMData(newData);
             })
         );
         return savedData;
@@ -157,18 +157,18 @@ async function saveCDMDataToDB(event: string) {
 };
 
 async function fetchCDMDataByEvent(event: string) {
-    return await cdmRepository.getCDMDataByEvent(event);
+    return await getCDMDataByEvent(event);
 };
 
 async function fetchAllCDMData() {
-    return await cdmRepository.getAllCDMData();
+    return await getAllCDMData();
 };
 
 async function fetchCDMDataById(id: Types.ObjectId) {
-    return await cdmRepository.getCDMDataById(id);
+    return await getCDMDataById(id);
 };
 
-module.exports = {
+export {
     fetchAllCDMData,
     fetchCDMDataById,
     fetchCDMDataFromDrive,
