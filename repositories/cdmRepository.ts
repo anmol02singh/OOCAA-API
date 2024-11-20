@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-const CDM = require('../models/cdm');
+import CDM from '../models/cdm';
 
 async function getAllCDMData() {
     return await CDM.find();
@@ -18,7 +18,7 @@ async function getCDMDataByEvent(event: string) {
     return await CDM.find({ event: event });
 }
 
-module.exports = {
+export {
     getAllCDMData,
     getCDMDataById,
     saveCDMData,
