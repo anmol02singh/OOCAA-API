@@ -15,9 +15,11 @@
     "cors": "^2.8.5",
     "express": "^4.21.1",
     "mongoose": "^8.7.3",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "cross-env": "^7.0.3",
     "dotenv": "^16.4.5",
