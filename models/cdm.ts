@@ -8,7 +8,7 @@ const cdmSchema = new mongoose.Schema({
     messageId: { type: String },
     tca: { type: Date }, 
     missDistance: { type: Number }, 
-    event: { type: String },
+    collisionProbability: { type: Number },
     satellite1: { type: satelliteSchema },
     satellite2: { type: satelliteSchema }
 });

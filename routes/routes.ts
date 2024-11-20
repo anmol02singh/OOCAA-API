@@ -9,3 +9,5 @@ router.get('/get/:event', getCDMDataByEvent);
 router.get('/events', getEvents);
 
 export default router
+
+//just post (save all cdms within )
