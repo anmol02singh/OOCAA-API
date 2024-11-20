@@ -1,4 +1,4 @@
-const mongoose = require('mongoose')
+import mongoose from "mongoose";
 
 const satelliteSchema = new mongoose.Schema({
     object: String,
@@ -46,4 +46,4 @@ const satelliteSchema = new mongoose.Schema({
     }
 });
 
-module.exports = satelliteSchema;
+export default satelliteSchema;
