@@ -6,6 +6,12 @@ async function register(username: string, password: string) {
     return await account.save();
 };
 
+async function login(username: string, password: string): Promise<boolean> {
+    const account = await Account.findOne({ username: username }).exec();
+    return password == account.passwordHash;
+};
+
 module.exports = {
-    register
+    register,
+    login
 };
