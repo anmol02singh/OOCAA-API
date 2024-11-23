@@ -14,13 +14,8 @@ async function saveCDMData(data: any) {
     return await cdmData.save();
 };
 
-async function getCDMDataByEvent(event: string) {
-    return await CDM.find({ event: event });
-}
-
 export {
     getAllCDMData,
     getCDMDataById,
-    saveCDMData,
-    getCDMDataByEvent
+    saveCDMData
 };

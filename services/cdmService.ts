@@ -1,57 +1,123 @@
 import { Types } from 'mongoose';
-import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent } from '../repositories/cdmRepository';
-import axios from 'axios';
-import fileIds  from '../config/fileIds';
+import { getAllCDMData, getCDMDataById, saveCDMData } from '../repositories/cdmRepository';
+import { google } from 'googleapis';
 
-function parseDate(dateString: string) {
-    if (!dateString) {
-        return null;
+const auth = new google.auth.GoogleAuth({
+    keyFile: './config/service-account-key.json',
+    scopes: ['https://www.googleapis.com/auth/drive']
+});
+
+const drive = google.drive({ version: 'v3', auth});
+
+async function listFilesRecursively(folderId: string): Promise<any[]> {
+    const allFiles: any[] = [];
+
+    async function fetchFiles(folderId: string, pageToken?: string) {
+        try {
+            const response = await drive.files.list({
+                q: `'${folderId}' in parents`,
+                fields: 'nextPageToken, files(id, name, mimeType)',
+                pageSize: 100,
+                pageToken,
+            });
+
+            const files = response.data.files || [];
+            for (const file of files) {
+                if (file.id && file.mimeType === 'application/vnd.google-apps.folder') {
+                    console.log(`Traversing folder: ${file.name}`);
+                    await fetchFiles(file.id);
+                } else {
+                    console.log(`Adding file: ${file.name}`);
+                    allFiles.push(file);
+                }
+            }
+
+            if (response.data.nextPageToken) {
+                await fetchFiles(folderId, response.data.nextPageToken);
+            }
+        } catch (error) {
+            console.error(`Error fetching files from folder ${folderId}:`, error);
+            throw new Error('Unable to fetch files from Google Drive');
+        }
     }
-    
-    if (!dateString.endsWith("Z")) {
-        dateString += "Z";
-    }
-    
-    return new Date(dateString);
-};
 
-async function fetchCDMDataFromDrive(event: string, index: number) {
-    const fileId = fileIds[event][index];
-    const url = `https://drive.google.com/uc?export=download&id=${fileId}`;
+    await fetchFiles(folderId);
+    return allFiles;
+}
 
+async function downloadFile(fileId: string, mimeType?: string): Promise<any> {
     try {
-        const response = await axios.get(url);
-        const dataArray = response.data;
+        if (mimeType && mimeType.startsWith('application/vnd.google-apps.')) {
+            let exportMimeType: string;
 
-        const data = Array.isArray(dataArray) ? dataArray[0] : dataArray;
-        return data;
+            if (mimeType === 'application/vnd.google-apps.spreadsheet') {
+                exportMimeType = 'text/csv';
+            } else if (mimeType === 'application/vnd.google-apps.document') {
+                exportMimeType = 'text/plain';
+            } else {
+                throw new Error(`Unsupported Google Workspace file type: ${mimeType}`);
+            }
+
+            const response = await drive.files.export(
+                { fileId, mimeType: exportMimeType },
+                { responseType: 'stream' }
+            );
+
+            const chunks: Buffer[] = [];
+            response.data.on('data', (chunk) => chunks.push(chunk));
+            return new Promise((resolve, reject) => {
+                response.data.on('end', () => {
+                    const fileContent = Buffer.concat(chunks).toString();
+                    resolve(fileContent);
+                });
+                response.data.on('error', (err) => reject(err));
+            });
+        } else {
+            const response = await drive.files.get(
+                { fileId, alt: 'media' },
+                { responseType: 'json' }
+            );
+
+            let data = response.data;
+            if (Array.isArray(data)) {
+                data = data[0];
+            }
+
+            return data;
+        }
     } catch (error) {
-	if (error instanceof Error) {
-             console.error(`Error fetching CDM data from Google Drive for ${event}, file ${index}:`, error.message);
-	}
-        throw new Error('Unable to fetch data from Google Drive');
+        console.error(`Error downloading file ${fileId}:`, error);
+        throw error;
     }
-};
+}
 
-async function saveCDMDataToDB(event: string) {
-    if (!fileIds[event]) {
-        console.error(`${event} does not exist`);
-    }
-    const dataPromises = fileIds[event].map((_: string, index: number) => fetchCDMDataFromDrive(event, index));
+function parseNumber(value: string): number | null {
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? null : parsed;
+}
 
+function parseDate(value: string): Date | null {
+    if (!value || value.trim() === '') return null;
+    const date = new Date(value.endsWith('Z') ? value : `${value}Z`);
+    return isNaN(date.getTime()) ? null : date;
+}
+
+async function saveCDMDataToDB(folderId: string) {
     try {
-        const allData = await Promise.all(dataPromises);
+        const files = await listFilesRecursively(folderId);
+        console.log(`Found ${files.length} files in the folder structure`);
 
-        const savedData = await Promise.all(
-            allData.map(data => {
+        const allData = await Promise.all(
+            files.map(async (file) => {
+                const data = await downloadFile(file.id, file.mimeType);
                 const newData = {
                     ccsdsCdmVers: data.CCSDS_CDM_VERS,
-                    creationDate: parseDate(data.CREATION_DATE) || new Date(),
+                    creationDate: parseDate(data.CREATION_DATE),
                     originator: data.ORIGINATOR,
                     messageId: data.MESSAGE_ID,
-                    tca: new Date(data.TCA),
-                    missDistance: parseFloat(data.MISS_DISTANCE),
-                    collisionProbability: parseFloat(data.COLLISION_PROBABILITY),
+                    tca: parseDate(data.TCA),
+                    missDistance: parseNumber(data.MISS_DISTANCE),
+                    collisionProbability: parseNumber(data.COLLISION_PROBABILITY),
                     satellite1: {
                         object: data.SAT1_OBJECT,
                         objectDesignator: data.SAT1_OBJECT_DESIGNATOR,
@@ -65,102 +131,100 @@ async function saveCDMDataToDB(event: string) {
                         maneuverable: data.SAT1_MANEUVERABLE,
                         referenceFrame: data.SAT1_REFERENCE_FRAME,
                         position: {
-                            x: parseFloat(data.SAT1_X),
-                            y: parseFloat(data.SAT1_Y),
-                            z: parseFloat(data.SAT1_Z)
+                            x: parseNumber(data.SAT1_X),
+                            y: parseNumber(data.SAT1_Y),
+                            z: parseNumber(data.SAT1_Z)
                         },
                         velocity: {
-                            x_dot: parseFloat(data.SAT1_X_DOT),
-                            y_dot: parseFloat(data.SAT1_Y_DOT),
-                            z_dot: parseFloat(data.SAT1_Z_DOT)
+                            x_dot: parseNumber(data.SAT1_X_DOT),
+                            y_dot: parseNumber(data.SAT1_Y_DOT),
+                            z_dot: parseNumber(data.SAT1_Z_DOT)
                         },
                         positionCovariance: {
-                            cr_r: parseFloat(data.SAT1_CR_R),
-                            ct_r: parseFloat(data.SAT1_CT_R),
-                            ct_t: parseFloat(data.SAT1_CT_T),
-                            cn_r: parseFloat(data.SAT1_CN_R),
-                            cn_t: parseFloat(data.SAT1_CN_T),
-                            cn_n: parseFloat(data.SAT1_CN_N)
+                            cr_r: parseNumber(data.SAT1_CR_R),
+                            ct_r: parseNumber(data.SAT1_CT_R),
+                            ct_t: parseNumber(data.SAT1_CT_T),
+                            cn_r: parseNumber(data.SAT1_CN_R),
+                            cn_t: parseNumber(data.SAT1_CN_T),
+                            cn_n: parseNumber(data.SAT1_CN_N)
                         },
                         velocityCovariance: {
-                            crdot_r: parseFloat(data.SAT1_CRDOT_R),
-                            crdot_t: parseFloat(data.SAT1_CRDOT_T),
-                            crdot_n: parseFloat(data.SAT1_CRDOT_N),
-                            crdot_rdot: parseFloat(data.SAT1_CRDOT_RDOT),
-                            ctdot_r: parseFloat(data.SAT1_CTDOT_R),
-                            ctdot_t: parseFloat(data.SAT1_CTDOT_T),
-                            ctdot_n: parseFloat(data.SAT1_CTDOT_N),
-                            ctdot_rdot: parseFloat(data.SAT1_CTDOT_RDOT),
-                            ctdot_tdot: parseFloat(data.SAT1_CTDOT_TDOT),
-                            cndot_r: parseFloat(data.SAT1_CNDOT_R),
-                            cndot_t: parseFloat(data.SAT1_CNDOT_T),
-                            cndot_n: parseFloat(data.SAT1_CNDOT_N),
-                            cndot_rdot: parseFloat(data.SAT1_CNDOT_RDOT),
-                            cndot_tdot: parseFloat(data.SAT1_CNDOT_TDOT),
-                            cndot_ndot: parseFloat(data.SAT1_CNDOT_NDOT)
+                            crdot_r: parseNumber(data.SAT1_CRDOT_R),
+                            crdot_t: parseNumber(data.SAT1_CRDOT_T),
+                            crdot_n: parseNumber(data.SAT1_CRDOT_N),
+                            crdot_rdot: parseNumber(data.SAT1_CRDOT_RDOT),
+                            ctdot_r: parseNumber(data.SAT1_CTDOT_R),
+                            ctdot_t: parseNumber(data.SAT1_CTDOT_T),
+                            ctdot_n: parseNumber(data.SAT1_CTDOT_N),
+                            ctdot_rdot: parseNumber(data.SAT1_CTDOT_RDOT),
+                            ctdot_tdot: parseNumber(data.SAT1_CTDOT_TDOT),
+                            cndot_r: parseNumber(data.SAT1_CNDOT_R),
+                            cndot_t: parseNumber(data.SAT1_CNDOT_T),
+                            cndot_n: parseNumber(data.SAT1_CNDOT_N),
+                            cndot_rdot: parseNumber(data.SAT1_CNDOT_RDOT),
+                            cndot_tdot: parseNumber(data.SAT1_CNDOT_TDOT),
+                            cndot_ndot: parseNumber(data.SAT1_CNDOT_NDOT)
                         }
                     },
                     satellite2: {
                         object: data.SAT2_OBJECT,
                         objectDesignator: data.SAT2_OBJECT_DESIGNATOR,
                         catalogName: data.SAT2_CATALOG_NAME,
+                        objectName: data.SAT2_OBJECT_NAME,
+                        operatorOrganization: data.SAT2_OPERATOR_ORGANIZATION,
                         internationalDesignator: data.SAT2_INTERNATIONAL_DESIGNATOR,
                         ephemerisName: data.SAT2_EPHEMERIS_NAME,
                         covarianceMethod: data.SAT2_COVARIANCE_METHOD,
                         maneuverable: data.SAT2_MANEUVERABLE,
                         referenceFrame: data.SAT2_REFERENCE_FRAME,
                         position: {
-                            x: parseFloat(data.SAT2_X),
-                            y: parseFloat(data.SAT2_Y),
-                            z: parseFloat(data.SAT2_Z)
+                            x: parseNumber(data.SAT2_X),
+                            y: parseNumber(data.SAT2_Y),
+                            z: parseNumber(data.SAT2_Z)
                         },
                         velocity: {
-                            x_dot: parseFloat(data.SAT2_X_DOT),
-                            y_dot: parseFloat(data.SAT2_Y_DOT),
-                            z_dot: parseFloat(data.SAT2_Z_DOT)
+                            x_dot: parseNumber(data.SAT2_X_DOT),
+                            y_dot: parseNumber(data.SAT2_Y_DOT),
+                            z_dot: parseNumber(data.SAT2_Z_DOT)
                         },
                         positionCovariance: {
-                            cr_r: parseFloat(data.SAT2_CR_R),
-                            ct_r: parseFloat(data.SAT2_CT_R),
-                            ct_t: parseFloat(data.SAT2_CT_T),
-                            cn_r: parseFloat(data.SAT2_CN_R),
-                            cn_t: parseFloat(data.SAT2_CN_T),
-                            cn_n: parseFloat(data.SAT2_CN_N)
+                            cr_r: parseNumber(data.SAT2_CR_R),
+                            ct_r: parseNumber(data.SAT2_CT_R),
+                            ct_t: parseNumber(data.SAT2_CT_T),
+                            cn_r: parseNumber(data.SAT2_CN_R),
+                            cn_t: parseNumber(data.SAT2_CN_T),
+                            cn_n: parseNumber(data.SAT2_CN_N)
                         },
                         velocityCovariance: {
-                            crdot_r: parseFloat(data.SAT2_CRDOT_R),
-                            crdot_t: parseFloat(data.SAT2_CRDOT_T),
-                            crdot_n: parseFloat(data.SAT2_CRDOT_N),
-                            crdot_rdot: parseFloat(data.SAT2_CRDOT_RDOT),
-                            ctdot_r: parseFloat(data.SAT2_CTDOT_R),
-                            ctdot_t: parseFloat(data.SAT2_CTDOT_T),
-                            ctdot_n: parseFloat(data.SAT2_CTDOT_N),
-                            ctdot_rdot: parseFloat(data.SAT2_CTDOT_RDOT),
-                            ctdot_tdot: parseFloat(data.SAT2_CTDOT_TDOT),
-                            cndot_r: parseFloat(data.SAT2_CNDOT_R),
-                            cndot_t: parseFloat(data.SAT2_CNDOT_T),
-                            cndot_n: parseFloat(data.SAT2_CNDOT_N),
-                            cndot_rdot: parseFloat(data.SAT2_CNDOT_RDOT),
-                            cndot_tdot: parseFloat(data.SAT2_CNDOT_TDOT),
-                            cndot_ndot: parseFloat(data.SAT2_CNDOT_NDOT)
+                            crdot_r: parseNumber(data.SAT2_CRDOT_R),
+                            crdot_t: parseNumber(data.SAT2_CRDOT_T),
+                            crdot_n: parseNumber(data.SAT2_CRDOT_N),
+                            crdot_rdot: parseNumber(data.SAT2_CRDOT_RDOT),
+                            ctdot_r: parseNumber(data.SAT2_CTDOT_R),
+                            ctdot_t: parseNumber(data.SAT2_CTDOT_T),
+                            ctdot_n: parseNumber(data.SAT2_CTDOT_N),
+                            ctdot_rdot: parseNumber(data.SAT2_CTDOT_RDOT),
+                            ctdot_tdot: parseNumber(data.SAT2_CTDOT_TDOT),
+                            cndot_r: parseNumber(data.SAT2_CNDOT_R),
+                            cndot_t: parseNumber(data.SAT2_CNDOT_T),
+                            cndot_n: parseNumber(data.SAT2_CNDOT_N),
+                            cndot_rdot: parseNumber(data.SAT2_CNDOT_RDOT),
+                            cndot_tdot: parseNumber(data.SAT2_CNDOT_TDOT),
+                            cndot_ndot: parseNumber(data.SAT2_CNDOT_NDOT)
                         }
                     }
                 };
-
                 return saveCDMData(newData);
             })
-        );
-        return savedData;
+        );    
+        console.log('All files saved successfully');
+        return allData;
     } catch (error) {
 	if (error instanceof Error) {
             console.error('Error saving CDM data to database:', error.message);
 	}
         throw new Error('Unable to save CDM data');
     }
-};
-
-async function fetchCDMDataByEvent(event: string) {
-    return await getCDMDataByEvent(event);
 };
 
 async function fetchAllCDMData() {
@@ -174,7 +238,5 @@ async function fetchCDMDataById(id: Types.ObjectId) {
 export {
     fetchAllCDMData,
     fetchCDMDataById,
-    fetchCDMDataFromDrive,
-    saveCDMDataToDB,
-    fetchCDMDataByEvent
+    saveCDMDataToDB
 };

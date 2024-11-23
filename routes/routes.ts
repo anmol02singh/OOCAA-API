@@ -1,13 +1,9 @@
 import express from 'express';
 const router = express.Router();
-import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent, getEvents } from '../controllers/cdmController';
+import { getAllCDMData, getCDMDataById, saveCDMData } from '../controllers/cdmController';
 
 router.get('/', getAllCDMData);
 router.get('/:id', getCDMDataById);
-router.post('/save/:event', saveCDMData);
-router.get('/get/:event', getCDMDataByEvent); 
-router.get('/events', getEvents);
+router.post('/sync-cdms', saveCDMData);
 
 export default router
-
-//just post (save all cdms within )
