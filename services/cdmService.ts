@@ -118,7 +118,7 @@ async function saveCDMDataToDB(folderId: string) {
                     tca: parseDate(data.TCA),
                     missDistance: parseNumber(data.MISS_DISTANCE),
                     collisionProbability: parseNumber(data.COLLISION_PROBABILITY),
-                    satellite1: {
+                    object1: {
                         object: data.SAT1_OBJECT,
                         objectDesignator: data.SAT1_OBJECT_DESIGNATOR,
                         catalogName: data.SAT1_CATALOG_NAME,
@@ -166,13 +166,14 @@ async function saveCDMDataToDB(folderId: string) {
                             cndot_ndot: parseNumber(data.SAT1_CNDOT_NDOT)
                         }
                     },
-                    satellite2: {
+                    object2: {
                         object: data.SAT2_OBJECT,
                         objectDesignator: data.SAT2_OBJECT_DESIGNATOR,
                         catalogName: data.SAT2_CATALOG_NAME,
                         objectName: data.SAT2_OBJECT_NAME,
-                        operatorOrganization: data.SAT2_OPERATOR_ORGANIZATION,
                         internationalDesignator: data.SAT2_INTERNATIONAL_DESIGNATOR,
+                        objectType: data.SAT2_OBJECT_TYPE,
+                        operatorOrganization: data.SAT2_OPERATOR_ORGANIZATION,
                         ephemerisName: data.SAT2_EPHEMERIS_NAME,
                         covarianceMethod: data.SAT2_COVARIANCE_METHOD,
                         maneuverable: data.SAT2_MANEUVERABLE,

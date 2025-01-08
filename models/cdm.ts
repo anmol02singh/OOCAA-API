@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import satelliteSchema from '../models/satellite';
+import objectSchema from './object';
 
 const cdmSchema = new mongoose.Schema({
     ccsdsCdmVers: { type: String },
@@ -9,8 +9,8 @@ const cdmSchema = new mongoose.Schema({
     tca: { type: Date }, 
     missDistance: { type: Number }, 
     collisionProbability: { type: Number },
-    satellite1: { type: satelliteSchema },
-    satellite2: { type: satelliteSchema }
+    object1: { type: objectSchema },
+    object2: { type: objectSchema }
 });
 
 export default mongoose.model('CDM', cdmSchema);
