@@ -1,7 +1,7 @@
 const accountRepository = require('../repositories/accountRepository');
 
-async function register(username: string, password: string) {
-    return await accountRepository.register(username, password);
+async function register(name: string, username: string, password: string) {
+    return await accountRepository.register(name, username, password);
 };
 
 async function login(username: string, password: string): Promise<boolean> {

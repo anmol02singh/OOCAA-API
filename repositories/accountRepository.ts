@@ -2,10 +2,10 @@ import { Types } from 'mongoose';
 const Account = require('../models/account');
 const bcrypt = require('bcryptjs');
 
-async function register(username: string, password: string) {
+async function register(name: string, username: string, password: string) {
     var salt = bcrypt.genSaltSync(10);
     var hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ username: username, passwordHash: hash });
+    const account = new Account({ name: name, username: username, passwordHash: hash, role: "user" });
     return await account.save();
 };
 
