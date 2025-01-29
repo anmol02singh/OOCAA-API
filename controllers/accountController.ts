@@ -23,7 +23,19 @@ async function login(req: Request, res: Response) {
 	}
 }
 
+async function role(req: Request, res: Response) {
+	const { username } = req.body;
+	try {
+		const role = await accountService.role(username);
+		res.status(200).json({ role: role });
+	} catch (error) {
+		// TODO give a proper message
+		res.status(500).json({ message: "ERROR ERROR ERROR" });
+	}
+}
+
 module.exports = {
 	register,
-	login
+	login,
+	role
 };

@@ -8,7 +8,12 @@ async function login(username: string, password: string): Promise<boolean> {
     return await accountRepository.login(username, password);
 };
 
+async function role(username: string): Promise<string> {
+    return await accountRepository.role(username);
+};
+
 module.exports = {
     register,
-    login
+    login,
+    role
 };
