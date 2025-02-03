@@ -1,8 +1,9 @@
 import { Types } from 'mongoose';
-const Account = require('../models/account');
+import Account from '../models/account';
+
 const bcrypt = require('bcryptjs');
 
-async function register(name: string, username: string, password: string): Promise<boolean> {
+export async function register(name: string, username: string, password: string): Promise<boolean> {
     if (await Account.findOne({ username: username }).exec()) {
         return false;
     }
@@ -17,21 +18,15 @@ async function register(name: string, username: string, password: string): Promi
     }
 };
 
-async function login(username: string, password: string): Promise<boolean> {
+export async function login(username: string, password: string): Promise<boolean> {
     const account = await Account.findOne({ username: username }).exec();
-    return bcrypt.compareSync(password, account.passwordHash);
+    return account && bcrypt.compareSync(password, account.passwordHash);
 };
 
-async function userdata(username: string): Promise<object> {
+export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
-    return {
+    return account ? {
         name: account.name, username: username, role: account.role,
         email: account.email, phoneNumber: account.phoneNumber
-    };
+    } : {};
 }
-
-module.exports = {
-    register,
-    login,
-    userdata
-};

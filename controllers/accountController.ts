@@ -1,11 +1,14 @@
 import { Request, Response } from 'express';
-const jwt = require('jsonwebtoken');
-const accountService = require('../services/accountService');
+import { register as serviceRegister } from '../services/accountService';
+import { login as serviceLogin } from '../services/accountService';
+import { userdata as serviceUserdata } from '../services/accountService';
 
-async function register(req: Request, res: Response) {
+const jwt = require('jsonwebtoken');
+
+export async function register(req: Request, res: Response) {
 	const { name, username, password } = req.body;
 	try {
-		if (!await accountService.register(name, username, password)) {
+		if (!await serviceRegister(name, username, password)) {
 			res.status(200).json({ success: false });
 			return;
 		}
@@ -25,10 +28,10 @@ function newAccessToken(username: string) {
 	return jwt.sign(payload, secret, options);
 }
 
-async function login(req: Request, res: Response) {
+export async function login(req: Request, res: Response) {
 	const { username, password } = req.body;
 	try {
-		if (!await accountService.login(username, password)) {
+		if (!await serviceLogin(username, password)) {
 			res.status(200).json({ success: false });
 			return;
 		}
@@ -40,21 +43,15 @@ async function login(req: Request, res: Response) {
 	}
 }
 
-async function userdata(req: Request, res: Response) {
+export async function userdata(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const { token } = req.body;
 	try {
 		const { username } = jwt.verify(token, secret);
-		const userdata = await accountService.userdata(username);
+		const userdata = await serviceUserdata(username);
 		res.status(200).json(userdata);
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /userdata" });
 	}
 }
-
-module.exports = {
-	register,
-	login,
-	userdata
-};

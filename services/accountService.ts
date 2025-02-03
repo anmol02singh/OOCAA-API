@@ -1,19 +1,15 @@
-const accountRepository = require('../repositories/accountRepository');
+import { register as repoRegister } from '../repositories/accountRepository';
+import { login as repoLogin } from '../repositories/accountRepository';
+import { userdata as repoUserdata } from '../repositories/accountRepository';
 
-async function register(name: string, username: string, password: string) {
-    return await accountRepository.register(name, username, password);
+export async function register(name: string, username: string, password: string) {
+    return await repoRegister(name, username, password);
 };
 
-async function login(username: string, password: string): Promise<boolean> {
-    return await accountRepository.login(username, password);
+export async function login(username: string, password: string): Promise<boolean> {
+    return await repoLogin(username, password);
 };
 
-async function userdata(username: string): Promise<object> {
-    return await accountRepository.userdata(username);
-};
-
-module.exports = {
-    register,
-    login,
-    userdata
+export async function userdata(username: string): Promise<object> {
+    return await repoUserdata(username);
 };

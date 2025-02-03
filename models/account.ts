@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
 
 const accountSchema = new mongoose.Schema({
     name: { type: String, required: false },
@@ -9,4 +9,4 @@ const accountSchema = new mongoose.Schema({
     role: { type: String, required: true }
 });
 
-module.exports = mongoose.model('Account', accountSchema);
+export default mongoose.model('Account', accountSchema);
