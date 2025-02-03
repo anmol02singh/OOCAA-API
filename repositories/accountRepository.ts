@@ -14,13 +14,16 @@ async function login(username: string, password: string): Promise<boolean> {
     return bcrypt.compareSync(password, account.passwordHash);
 };
 
-async function role(username: string): Promise<string> {
+async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
-    return account.role;
+    return {
+        name: account.name, username: username, role: account.role,
+        email: account.email, phoneNumber: account.phoneNumber
+    };
 }
 
 module.exports = {
     register,
     login,
-    role
+    userdata
 };
