@@ -12,8 +12,8 @@ async function register(req: Request, res: Response) {
 
 		res.status(201).json({ success: true, token: newAccessToken(username) });
 	} catch (error) {
-		// TODO give a proper message
-		res.status(500).json({ message: "ERROR ERROR ERROR" });
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /register" });
 	}
 }
 
@@ -35,8 +35,8 @@ async function login(req: Request, res: Response) {
 
 		res.status(200).json({ success: true, token: newAccessToken(username) });
 	} catch (error) {
-		// TODO give a proper message
-		res.status(500).json({ message: "ERROR ERROR ERROR" });
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /login" });
 	}
 }
 
@@ -48,8 +48,8 @@ async function userdata(req: Request, res: Response) {
 		const userdata = await accountService.userdata(username);
 		res.status(200).json(userdata);
 	} catch (error) {
-		// TODO give a proper message
-		res.status(500).json({ message: "ERROR ERROR ERROR" });
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /userdata" });
 	}
 }
 
