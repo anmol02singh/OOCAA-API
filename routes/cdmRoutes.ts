@@ -1,11 +1,11 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
-const cdmController = require('../controllers/cdmController');
+import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent, getEvents } from '../controllers/cdmController';
 
-router.get('/', cdmController.getAllCDMData);
-router.get('/:id', cdmController.getCDMDataById);
-router.post('/save/:event', cdmController.saveCDMData);
-router.get('/get/:event', cdmController.getCDMDataByEvent); 
-router.get('/events', cdmController.getEvents);
+router.get('/', getAllCDMData);
+router.get('/:id', getCDMDataById);
+router.post('/save/:event', saveCDMData);
+router.get('/get/:event', getCDMDataByEvent); 
+router.get('/events', getEvents);
 
-module.exports = router
+export default router

@@ -1,12 +1,13 @@
-require('dotenv').config();
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
 
-const express = require('express');
+import connectToDatabase from './config/database';
+import cdmRoutes from './routes/cdmRoutes';
+import otherRoutes from './routes/otherRoutes';
+
 const app = express();
-const connectToDatabase = require('./config/database');
-const cdmRoutes = require('./routes/cdmRoutes');
-const otherRoutes = require('./routes/otherRoutes');
-const cors = require('cors');
-const bodyParser = require('body-parser');
 
 connectToDatabase();
 

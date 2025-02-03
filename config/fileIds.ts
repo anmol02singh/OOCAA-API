@@ -1,4 +1,4 @@
-module.exports = {
+const fileIds: Record<string, string[]> = {
     Event1: [
         '1jxxDYWUSvPeWpamFQzfYvKS_oz94Z8Sf', 
         '1nBQJfNsBjVUrEC5lD2ESDYLJTmthguwE', 
@@ -7,3 +7,5 @@ module.exports = {
         '1CO2M9RZiZ1cwp4DtAX4H-3MVTyJ40SKM' 
     ],
 };
+
+export default fileIds;
