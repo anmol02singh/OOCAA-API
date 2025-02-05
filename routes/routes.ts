@@ -1,11 +1,13 @@
 import express from 'express';
 const router = express.Router();
-import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent, getEvents } from '../controllers/cdmController';
+import { getAllCDMData, getCDMDataById, saveCDMData } from '../controllers/cdmController';
+import { searchCDMs } from '../controllers/searchController';
+import { fetchTLEs } from '../controllers/tleController';
 
 router.get('/', getAllCDMData);
 router.get('/:id', getCDMDataById);
-router.post('/save/:event', saveCDMData);
-router.get('/get/:event', getCDMDataByEvent); 
-router.get('/events', getEvents);
+router.post('/sync-cdms', saveCDMData);
+router.post('/search', searchCDMs);
+router.post('/fetchTLEs', fetchTLEs);
 
-export default router
+export default router;
