@@ -7,6 +7,12 @@ export async function register(name: string, email: string, phone: string, usern
     if (await Account.findOne({ username: username }).exec()) {
         return false;
     }
+    if (await Account.findOne({ email: email }).exec()) {
+        return false;
+    }
+    if (phone && await Account.findOne({ phoneNumber: phone }).exec()) {
+        return false;
+    }
 
     var salt = bcrypt.genSaltSync(10);
     var hash = bcrypt.hashSync(password, salt);
