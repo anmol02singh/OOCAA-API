@@ -8,8 +8,9 @@ const jwt = require('jsonwebtoken');
 export async function register(req: Request, res: Response) {
 	const { name, email, phone, username, password } = req.body;
 	try {
-		if (!await serviceRegister(name, email, phone, username, password)) {
-			res.status(200).json({ success: false });
+		const error = await serviceRegister(name, email, phone, username, password);
+		if (error !== "") {
+			res.status(200).json({ success: false, error: error });
 			return;
 		}
 
