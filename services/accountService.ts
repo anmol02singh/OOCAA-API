@@ -2,8 +2,8 @@ import { register as repoRegister } from '../repositories/accountRepository';
 import { login as repoLogin } from '../repositories/accountRepository';
 import { userdata as repoUserdata } from '../repositories/accountRepository';
 
-export async function register(name: string, username: string, password: string) {
-    return await repoRegister(name, username, password);
+export async function register(name: string, email: string, phone: string, username: string, password: string) {
+    return await repoRegister(name, email, phone, username, password);
 };
 
 export async function login(username: string, password: string): Promise<boolean> {

@@ -6,9 +6,9 @@ import { userdata as serviceUserdata } from '../services/accountService';
 const jwt = require('jsonwebtoken');
 
 export async function register(req: Request, res: Response) {
-	const { name, username, password } = req.body;
+	const { name, email, phone, username, password } = req.body;
 	try {
-		if (!await serviceRegister(name, username, password)) {
+		if (!await serviceRegister(name, email, phone, username, password)) {
 			res.status(200).json({ success: false });
 			return;
 		}

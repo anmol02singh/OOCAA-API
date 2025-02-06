@@ -3,14 +3,14 @@ import Account from '../models/account';
 
 const bcrypt = require('bcryptjs');
 
-export async function register(name: string, username: string, password: string): Promise<boolean> {
+export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<boolean> {
     if (await Account.findOne({ username: username }).exec()) {
         return false;
     }
 
     var salt = bcrypt.genSaltSync(10);
     var hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, username: username, passwordHash: hash, role: "user" });
+    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: "user" });
     if (await account.save()) {
         return true;
     } else {
