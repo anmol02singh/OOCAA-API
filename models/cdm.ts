@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import objectSchema from './object';
 
 const cdmSchema = new mongoose.Schema({
+    event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
     ccsdsCdmVers: { type: String },
     creationDate: { type: Date },
     originator: { type: String },

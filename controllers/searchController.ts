@@ -23,5 +23,3 @@ export const searchCDMs = async (req: Request, res: Response): Promise<void> => 
     res.status(500).json({ message: 'Internal server error' });
   }
 };
-
-//if nothing in search bars (tca range is always going to be defined) no results should be in api response
