@@ -1,8 +1,13 @@
 const mongoose = require('mongoose');
 
 const eventSchema = new mongoose.Schema({
+  eventName: { type: String, required: true },
   primaryObjectDesignator: { type: String, required: true },
+  primaryObjectName: { type: String },
+  primaryObjectType: { type: String },
   secondaryObjectDesignator: { type: String, required: true },
+  secondaryObjectName: { type: String },
+  secondaryObjectType: { type: String },
   tca: { type: Date, required: true },
 });
 

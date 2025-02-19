@@ -24,7 +24,13 @@ async function saveCDMData(data: any | any[]) {
 
 async function getOrCreateEvent(cdmData: any) {
     const primaryDesignator = cdmData.object1.objectDesignator;
+    const primaryName = cdmData.object1.objectName;
+    const primaryType = cdmData.object1.objectType;
+
     const secondaryDesignator = cdmData.object2.objectDesignator;
+    const secondaryName = cdmData.object2.objectName;
+    const secondaryType = cdmData.object2.objectType;
+    
     const tca = cdmData.tca;
 
     const startTCA = new Date(tca.getTime() - tca_range);
@@ -37,9 +43,17 @@ async function getOrCreateEvent(cdmData: any) {
     });
 
     if (!event) {
+        const count = await Event.countDocuments({});
+        const eventName = `event_${count + 1}`;
+
         event = new Event({
+            eventName,
             primaryObjectDesignator: primaryDesignator,
             secondaryObjectDesignator: secondaryDesignator,
+            primaryObjectName: primaryName,
+            secondaryObjectName: secondaryName,
+            primaryObjectType: primaryType,
+            secondaryObjectType: secondaryType,
             tca: tca,
         });
     await event.save();

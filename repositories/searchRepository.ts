@@ -1,10 +1,10 @@
-import CDM from '../models/cdm';
+import Event from '../models/event';
 
-export const findCDMs = async (query: any) => {
+export const findEvents = async (query: any) => {
   try {
-    return await CDM.find(query);
+    return await Event.find(query);
   } catch (error) {
-    console.error('Error querying CDMs:', error);
+    console.error('Error querying Events:', error);
     throw error;
   }
 };
