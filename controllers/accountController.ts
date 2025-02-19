@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { register as serviceRegister } from '../services/accountService';
 import { login as serviceLogin } from '../services/accountService';
 import { userdata as serviceUserdata } from '../services/accountService';
+import { updateGeneralUserData as serviceUpdateUserData } from '../services/accountService';
 
 const jwt = require('jsonwebtoken');
 
@@ -54,5 +55,18 @@ export async function userdata(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /userdata" });
+	}
+}
+
+export async function updateGeneralUserData(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token, newName, newUsername, newEmail, newPhone } = req.body;
+	try {
+		const { username } = jwt.verify(token, secret);
+		const result = await serviceUpdateUserData(username, newName, newUsername, newEmail, newPhone);
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
 	}
 }
