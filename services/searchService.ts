@@ -62,7 +62,5 @@ export const getEvents = async (searchParams: SearchParams[], tcaRange: TcaRange
     ],
   };
 
-  console.log('Query:', JSON.stringify(query, null, 2));
-
   return await findEvents(query);
 };

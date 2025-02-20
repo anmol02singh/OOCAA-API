@@ -44,11 +44,8 @@ export const fetchTLEFromSpaceTrack = async (designator: string, tcaDate: Date) 
       //const queryURL = `${SPACE_TRACK_API_BASE}/NORAD_CAT_ID/${designator}/EPOCH/${formatDate(startEpoch)}--${formatDate(endEpoch)}/orderby/EPOCH/format/tle`;
       //https://www.space-track.org/basicspacedata/query/class/gp_history/NORAD_CAT_ID/39088/orderby/TLE_LINE1 DESC/EPOCH/2024-11-19--2024-11-20/format/tle
       const queryURL = `${SPACE_TRACK_API_BASE}/NORAD_CAT_ID/${designator}/EPOCH/${formatDate(startEpoch)}--${formatDate(endEpoch)}/orderby/TLE_LINE1 DESC/format/tle`;
-      console.log('Fetching TLEs with URL:', queryURL);
   
       const response = await axiosInstance.get(queryURL, { responseType: 'text' });
-
-      console.log('Space-Track API response: \n', response.data);
 
       if (response.data) {
         const tleArray = response.data.trim().split('\n');

@@ -1,4 +1,4 @@
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import CDM from '../models/cdm';
 import Event from '../models/event';
 
@@ -12,6 +12,14 @@ async function getCDMDataById(id: Types.ObjectId) {
     return await CDM.findById(id);
 };
 
+async function getCDMsForEvent(eventId: string) {
+    try {
+        return await CDM.find({ event: new mongoose.Types.ObjectId(eventId) });
+    } catch (error) {
+      console.error('Error in repository (getCDMsForEvent):', error);
+      throw error;
+    }
+};
 
 async function saveCDMData(data: any | any[]) {
     if (Array.isArray(data)) {
@@ -65,5 +73,6 @@ export {
     getAllCDMData,
     getCDMDataById,
     saveCDMData,
-    getOrCreateEvent
+    getOrCreateEvent,
+    getCDMsForEvent
 };

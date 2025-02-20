@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { getAllCDMData, getCDMDataById, saveCDMData, getOrCreateEvent } from '../repositories/cdmRepository';
+import { getAllCDMData, getCDMDataById, saveCDMData, getOrCreateEvent, getCDMsForEvent } from '../repositories/cdmRepository';
 import { google } from 'googleapis';
 
 const auth = new google.auth.GoogleAuth({
@@ -263,8 +263,13 @@ async function fetchCDMDataById(id: Types.ObjectId) {
     return await getCDMDataById(id);
 };
 
+async function fetchCDMsByEvent(eventId: string) {
+    return await getCDMsForEvent(eventId);
+};
+
 export {
     fetchAllCDMData,
     fetchCDMDataById,
-    saveCDMDataToDB
+    saveCDMDataToDB,
+    fetchCDMsByEvent
 };

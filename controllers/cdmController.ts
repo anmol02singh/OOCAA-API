@@ -1,5 +1,5 @@
 import { Router, Request, Response, NextFunction, request } from 'express';
-import { fetchAllCDMData, fetchCDMDataById, saveCDMDataToDB } from '../services/cdmService';
+import { fetchAllCDMData, fetchCDMDataById, saveCDMDataToDB, fetchCDMsByEvent } from '../services/cdmService';
 import mongoose from 'mongoose';
 
 export async function saveCDMData(req: Request, res: Response) {
@@ -48,5 +48,16 @@ export async function getCDMDataById(req: Request<{ id: string }>, res: Response
         } else {
             res.status(500).json({ message: "Unknown Error" });
         }
+    }
+}
+
+export async function getCDMsByEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const eventId = req.params.eventId;
+    try {
+        const data = await fetchCDMsByEvent(eventId);
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error in controller (getCDMsByEvent):', error);
+        res.status(500).json({ message: 'Error fetching CDMs for event' });
     }
 }
