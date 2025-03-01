@@ -18,14 +18,14 @@ export async function userdata(username: string): Promise<object> {
 export async function updateGeneralUserData(
     currentUsername: string,
     newName?: string,
-    newUsername?: string,
+    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{success: boolean, message: string}> {
     return await repoUpdateUserData(
         currentUsername,
         newName,
-        newUsername,
+        // newUsername,
         newEmail,
         newPhone
     );

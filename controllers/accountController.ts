@@ -60,10 +60,10 @@ export async function userdata(req: Request, res: Response) {
 
 export async function updateGeneralUserData(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
-	const { token, newName, newUsername, newEmail, newPhone } = req.body;
+	const { token, newName, /*newUsername,*/ newEmail, newPhone } = req.body;
 	try {
 		const { username } = jwt.verify(token, secret);
-		const result = await serviceUpdateUserData(username, newName, newUsername, newEmail, newPhone);
+		const result = await serviceUpdateUserData(username, newName, /*newUsername,*/ newEmail, newPhone);
 		res.status(200).json(result);
 	} catch (error) {
 		console.error(error);

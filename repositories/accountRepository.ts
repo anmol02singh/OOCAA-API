@@ -41,18 +41,18 @@ export async function userdata(username: string): Promise<object> {
 export async function updateGeneralUserData(
     currentUsername: string,
     newName?: string,
-    newUsername?: string,
+    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{success: boolean; message: string}> {
     
-    if(!newName && !newUsername && !newEmail && !newPhone){
+    if(!newName /*&& !newUsername*/ && !newEmail && !newPhone){
         return {success: false, message: "User account update cancelled: no new data was given."};
     }
     
-    if (newUsername && await Account.findOne({ username: newUsername }).exec()) {
-        return {success: false, message: "This username is taken."};
-    }
+    // if (newUsername && await Account.findOne({ username: newUsername }).exec()) {
+    //     return {success: false, message: "This username is taken."};
+    // }
     if (newEmail && await Account.findOne({ email: newEmail }).exec()) {
         return {success: false, message: "This email is taken."};
     }
@@ -67,7 +67,7 @@ export async function updateGeneralUserData(
     //Updated user acount object.
     const updatedAccount = {
         name: newName ? newName : account.name,
-        username: newUsername ? newUsername : account.username,
+        // username: newUsername ? newUsername : account.username,
         email: newEmail ? newEmail : account.email,
         phoneNumber: newPhone ? newPhone : account.phoneNumber,
     };
