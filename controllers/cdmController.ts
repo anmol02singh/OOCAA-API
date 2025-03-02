@@ -1,18 +1,17 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import { fetchAllCDMData, fetchCDMDataById, fetchCDMDataFromDrive, saveCDMDataToDB, fetchCDMDataByEvent} from '../services/cdmService';
-import events from '../config/events';
+import { Router, Request, Response, NextFunction, request } from 'express';
+import { fetchAllCDMData, fetchCDMDataById, saveCDMDataToDB, fetchCDMsByEvent } from '../services/cdmService';
 import mongoose from 'mongoose';
 
 export async function saveCDMData(req: Request, res: Response) {
-    const { event } = req.params;
+    const folderId = (process.env.FOLDER_ID as string);
     try {
-        const savedData = await saveCDMDataToDB(event);
-        res.status(201).json(savedData);
+        const savedData = await saveCDMDataToDB(folderId);
+        res.status(201).json({ message: 'CDMs synced successfully', data: savedData})
     } catch (error) {
         if (error instanceof Error) {
             res.status(500).json({ message: error.message });
         } else {
-            res.status(500).json({ message: "Unknown Error" });
+            res.status(500).json({ message: 'Unknown error'});
         }
     }
 }
@@ -52,32 +51,13 @@ export async function getCDMDataById(req: Request<{ id: string }>, res: Response
     }
 }
 
-export async function getEvents(req: Request, res: Response) {
+export async function getCDMsByEvent(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const eventId = req.params.eventId;
     try {
-        res.json(events);
+        const data = await fetchCDMsByEvent(eventId);
+        res.status(200).json(data);
     } catch (error) {
-        if (error instanceof Error) {
-            res.status(500).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: "Unknown Error" });
-        }
-    }
-}
-
-export async function getCDMDataByEvent(req: Request<{ event: string }>, res: Response, next: NextFunction): Promise<void> {
-    const { event } = req.params;
-    try {
-        if (!event) {
-            res.status(400).json({ message: 'Event parameter missing' });
-            return;
-        }
-        const data = await fetchCDMDataByEvent(event);
-        res.json(data);
-    } catch (error) {
-        if (error instanceof Error) {
-            res.status(500).json({ message: error.message });
-        } else {
-            res.status(500).json({ message: "Unknown Error" });
-        }
+        console.error('Error in controller (getCDMsByEvent):', error);
+        res.status(500).json({ message: 'Error fetching CDMs for event' });
     }
 }
