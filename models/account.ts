@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose, { InferSchemaType } from 'mongoose';
 
 const accountSchema = new mongoose.Schema({
     name: { type: String, required: false },
@@ -10,3 +10,4 @@ const accountSchema = new mongoose.Schema({
 });
 
 export default mongoose.model('Account', accountSchema);
+export type AccountType = InferSchemaType<typeof accountSchema>;

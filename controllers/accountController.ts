@@ -3,8 +3,7 @@ import { register as serviceRegister } from '../services/accountService';
 import { login as serviceLogin } from '../services/accountService';
 import { userdata as serviceUserdata } from '../services/accountService';
 import { updateGeneralUserData as serviceUpdateUserData } from '../services/accountService';
-
-const jwt = require('jsonwebtoken');
+import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
 export async function register(req: Request, res: Response) {
 	const { name, email, phone, username, password } = req.body;
@@ -25,7 +24,9 @@ export async function register(req: Request, res: Response) {
 function newAccessToken(username: string) {
 	const payload = { username: username };
 	const secret = process.env.JWT_SECRET_KEY;
-	const options = { expiresIn: '2h' };
+	const options: SignOptions = { expiresIn: '2h' };
+
+	if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
 
 	return jwt.sign(payload, secret, options);
 }
@@ -49,7 +50,8 @@ export async function userdata(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const { token } = req.body;
 	try {
-		const { username } = jwt.verify(token, secret);
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret)  as JwtPayload;
 		const userdata = await serviceUserdata(username);
 		res.status(200).json(userdata);
 	} catch (error) {
@@ -62,7 +64,8 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const { token, newName, /*newUsername,*/ newEmail, newPhone } = req.body;
 	try {
-		const { username } = jwt.verify(token, secret);
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
 		const result = await serviceUpdateUserData(username, newName, /*newUsername,*/ newEmail, newPhone);
 		res.status(200).json(result);
 	} catch (error) {
