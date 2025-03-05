@@ -20,6 +20,16 @@ if your default port isn't 3000 you can also define the port number in here by p
 
 PORT=3000
 
+You must also generate a token with the command:
+```
+openssl rand -hex 32
+```
+and add the following line to your .env:
+```
+JWT_SECRET_KEY=[the token you generated here]
+```
+This is necessary for the JWT account tokens to work.
+
 when u did npm install, nodemon should've been installed. nodemon is helpful when starting the server cuz it'll restart everytime u make a change. start the server by running: npm run devStart. if this doesn't work, run: node server.js
 
 if successful, you should see in the terminal: 
