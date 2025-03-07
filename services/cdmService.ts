@@ -9,20 +9,22 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth});
 
-async function listFilesRecursively(folderId: string): Promise<any[]> {
+async function listFilesRecursively(folderId: string, maxFiles = 37000): Promise<any[]> {
     const allFiles: any[] = [];
 
     async function fetchFiles(folderId: string, pageToken?: string) {
+        if (allFiles.length >= maxFiles) return;
         try {
             const response = await drive.files.list({
                 q: `'${folderId}' in parents`,
                 fields: 'nextPageToken, files(id, name, mimeType)',
-                pageSize: 100,
+                pageSize: Math.min(100, maxFiles - allFiles.length),
                 pageToken,
             });
 
             const files = response.data.files || [];
             for (const file of files) {
+                if (allFiles.length >= maxFiles) return;
                 if (file.id && file.mimeType === 'application/vnd.google-apps.folder') {
                     console.log(`Traversing folder: ${file.name}`);
                     await fetchFiles(file.id);
@@ -32,7 +34,7 @@ async function listFilesRecursively(folderId: string): Promise<any[]> {
                 }
             }
 
-            if (response.data.nextPageToken) {
+            if (response.data.nextPageToken && allFiles.length < maxFiles) {
                 await fetchFiles(folderId, response.data.nextPageToken);
             }
         } catch (error) {
@@ -42,7 +44,7 @@ async function listFilesRecursively(folderId: string): Promise<any[]> {
     }
 
     await fetchFiles(folderId);
-    return allFiles;
+    return allFiles.slice(0, maxFiles);
 }
 
 async function downloadFile(fileId: string, mimeType?: string): Promise<any> {
@@ -104,7 +106,7 @@ function parseDate(value: string): Date | null {
 
 async function saveCDMDataToDB(folderId: string) {
     try {
-        const files = await listFilesRecursively(folderId);
+        const files = await listFilesRecursively(folderId, 37000);
         console.log(`Found ${files.length} files in the folder structure`);
 
         const batchSize = 1000; 

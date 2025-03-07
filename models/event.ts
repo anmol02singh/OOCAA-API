@@ -9,6 +9,10 @@ const eventSchema = new mongoose.Schema({
   secondaryObjectName: { type: String },
   secondaryObjectType: { type: String },
   tca: { type: Date, required: true },
+  missDistances: { type: [Number], default: [] },
+  collisionProbabilities: { type: [Number], default: [] },
+  primaryOperatorOrganization: { type: String },
+  secondaryOperatorOrganization: { type: String },
 });
 
 export default mongoose.model('Event', eventSchema);
