@@ -6,7 +6,17 @@ const accountSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: false },
-    role: { type: String, required: true }
+    role: { type: String, required: true },
+    profileImage: {
+        publicId: {
+            type: String,
+            required: true,
+        },
+        url: {
+            type: String,
+            required: true,
+        },
+    },
 });
 
 export default mongoose.model('Account', accountSchema);

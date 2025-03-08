@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
-import { register as serviceRegister } from '../services/accountService';
-import { login as serviceLogin } from '../services/accountService';
-import { userdata as serviceUserdata } from '../services/accountService';
-import { updateGeneralUserData as serviceUpdateUserData } from '../services/accountService';
+import {
+	register as serviceRegister,
+	login as serviceLogin,
+	userdata as serviceUserdata,
+	updateGeneralUserData as serviceUpdateUserData,
+	updateProfileImage as serviceUpdateProfileImage,
+} from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
 export async function register(req: Request, res: Response) {
@@ -71,5 +74,20 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
+	}
+}
+
+export async function updateProfileImage(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token, newImage } = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
+		const result = await serviceUpdateProfileImage(username, newImage);
+		
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /updateProfileImage" });
 	}
 }

@@ -1,6 +1,7 @@
 import Account, { AccountType } from '../models/account';
 import bcrypt from "bcryptjs";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
+import cloudinary from '../config/cloudinary';
 
 //Regex for email validation.
 //eslint-disable-next-line no-useless-escape
@@ -84,8 +85,12 @@ export async function login(username: string, password: string): Promise<boolean
 export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
     return account ? {
-        name: account.name, username: username, role: account.role,
-        email: account.email, phoneNumber: account.phoneNumber
+        name: account.name,
+        username: username,
+        role: account.role,
+        email: account.email,
+        phoneNumber: account.phoneNumber,
+        profileImage: account.profileImage,
     } : {};
 }
 
@@ -110,7 +115,7 @@ export async function updateGeneralUserData(
     const dataValidation = await validateUserData(account, newName, newEmail, newPhone);
     if(!dataValidation.success) return dataValidation;
 
-    //Updated user acount object.
+    //Updated user account object.
     const updatedAccount = {
         name: newName ? newName : account.name,
         // username: newUsername ? newUsername : account.username,
@@ -121,6 +126,35 @@ export async function updateGeneralUserData(
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
     if(result.matchedCount > 0 && result.modifiedCount > 0){
         return {success: true, message: "User account successfully updated"};
+    }else{
+        throw new Error("Error updating account in database.");
+    }
+};
+
+export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
+    
+    //User object to update.
+    const account = await Account.findOne({ username: currentUsername }).exec();
+    if(!account) return false;
+
+    //Upload image.
+    const parentFolder = process.env.CLOUDINARY_PARENT_FOLDER;
+    const uploadedImage = await cloudinary.uploader.upload(newImage, {
+        folder: `${parentFolder}/${account._id}`,
+    })
+
+    //Updated user account object.
+    const updatedAccount = {
+        profileImage: {
+            publicId: uploadedImage.public_id,
+            url: uploadedImage.secure_url,
+        }
+    };
+
+    //Update user account.
+    const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
+    if(result.matchedCount > 0 && result.modifiedCount > 0){
+        return true;
     }else{
         throw new Error("Error updating account in database.");
     }

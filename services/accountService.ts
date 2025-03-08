@@ -1,7 +1,10 @@
-import { register as repoRegister } from '../repositories/accountRepository';
-import { login as repoLogin } from '../repositories/accountRepository';
-import { userdata as repoUserdata } from '../repositories/accountRepository';
-import { updateGeneralUserData as repoUpdateUserData } from '../repositories/accountRepository';
+import {
+    register as repoRegister,
+    login as repoLogin,
+    userdata as repoUserdata,
+    updateGeneralUserData as repoUpdateUserData,
+    updateProfileImage as repoUpdateProfileImage,
+} from '../repositories/accountRepository';
 
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
     return await repoRegister(name, email, phone, username, password);
@@ -30,3 +33,7 @@ export async function updateGeneralUserData(
         newPhone
     );
 };
+
+export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
+    return await repoUpdateProfileImage(currentUsername, newImage);
+}
