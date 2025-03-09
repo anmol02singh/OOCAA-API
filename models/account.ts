@@ -8,14 +8,11 @@ const accountSchema = new mongoose.Schema({
     phoneNumber: { type: String, required: false },
     role: { type: String, required: true },
     profileImage: {
-        publicId: {
-            type: String,
-            required: true,
+        type: {
+            publicId: { type: String, required: false },
+            url: { type: String, required: false },
         },
-        url: {
-            type: String,
-            required: true,
-        },
+        required: false,
     },
 });
 

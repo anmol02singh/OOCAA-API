@@ -3,6 +3,12 @@ import bcrypt from "bcryptjs";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import cloudinary from '../config/cloudinary';
 
+//Placeholder profile picture.
+const placeholderProfileImage = {
+    publicId: 'OOCAA/profileImages/placeholderProfileImage_kgpfxm.png',
+    url: 'https://res.cloudinary.com/dzdbnoch9/image/upload/v1741495294/placeholderProfileImage_wsa3w8.png',
+};
+
 //Regex for email validation.
 //eslint-disable-next-line no-useless-escape
 const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -90,7 +96,8 @@ export async function userdata(username: string): Promise<object> {
         role: account.role,
         email: account.email,
         phoneNumber: account.phoneNumber,
-        profileImage: account.profileImage,
+        profileImage: account.profileImage ?
+            account.profileImage : placeholderProfileImage,
     } : {};
 }
 
@@ -138,9 +145,10 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
     if(!account) return false;
 
     //Upload image.
-    const parentFolder = process.env.CLOUDINARY_PARENT_FOLDER;
+    const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
+    await cloudinary.api.delete_resources_by_prefix(folder);
     const uploadedImage = await cloudinary.uploader.upload(newImage, {
-        folder: `${parentFolder}/${account._id}`,
+        folder: folder,
     })
 
     //Updated user account object.
@@ -153,6 +161,26 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
 
     //Update user account.
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
+    if(result.matchedCount > 0 && result.modifiedCount > 0){
+        return true;
+    }else{
+        throw new Error("Error updating account in database.");
+    }
+};
+
+export async function removeProfileImage(currentUsername: string): Promise<boolean> {
+    
+    //User object to remove from.
+    const account = await Account.findOne({ username: currentUsername }).exec();
+    if(!account) return false;
+
+    //Remove image.
+    const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
+    await cloudinary.api.delete_resources_by_prefix(folder);
+
+    //Update user account.
+    if(!account.profileImage) return false;
+    const result = await Account.updateOne({ _id: account._id }, { $unset: { profileImage: 1 } }).exec()
     if(result.matchedCount > 0 && result.modifiedCount > 0){
         return true;
     }else{

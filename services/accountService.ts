@@ -4,6 +4,7 @@ import {
     userdata as repoUserdata,
     updateGeneralUserData as repoUpdateUserData,
     updateProfileImage as repoUpdateProfileImage,
+    removeProfileImage as repoRemoveProfileImage,
 } from '../repositories/accountRepository';
 
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
@@ -36,4 +37,8 @@ export async function updateGeneralUserData(
 
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
     return await repoUpdateProfileImage(currentUsername, newImage);
+}
+
+export async function removeProfileImage(currentUsername: string): Promise<boolean> {
+    return await repoRemoveProfileImage(currentUsername);
 }
