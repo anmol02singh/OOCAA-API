@@ -45,7 +45,9 @@ CLOUDINARY_PARENT_FOLDER=OOCAA/profileImages
 CLOUDINARY_KEY=437337699859197
 CLOUDINARY_SECRET_KEY=bK3iYpyTp-ybuqYB3Fpm7K9X-d8
 ```
-Images are stored via uploading to a "cloud" or server space with the cloudinary service and saving associated URLs in OOCAA's database. The above 4 values help access the cloud and the specific path for storing images.
+Images are stored via uploading to a "cloud" or server space with the [cloudinary](https://cloudinary.com/) service and saving associated URLs in OOCAA's database. The above 4 values help access the cloud and the specific path for storing images.
+
+* If you want to use your own account for testing, you can make your own [cloudinary](https://cloudinary.com/) account for free and change these values to those listed under **Programmable Media > Dashboard** and **Dashboard > Go to API Keys** in your account while ideally **keeping CLOUDINARY_PARENT_FOLDER the same** to maintain the same file structure. You can view the uploaded files under **Assets > Folders**.
 
 <br/>
 
