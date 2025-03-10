@@ -135,7 +135,7 @@ export async function repairProfileImageSource(username: string): Promise<boolea
             //eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             if (error.error.http_code === 420) {
-                console.error("Error deleting folder:", error);
+                console.error("Error checking folder:", error);
                 return false;
             } else if (error.error.http_code === 404) {
                 folderMissing = true;
@@ -254,7 +254,10 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
         await cloudinary.api.delete_resources_by_prefix(folder);
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {        
-        if (error.http_code && error.http_code !== 404) {
+        if (error.http_code === 420) {
+            console.error("Error deleting folder:", error);
+            return false;
+        } else if (error.http_code !== 404) {
             console.error("Error deleting folder:", error);
             throw error;
         }
