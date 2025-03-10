@@ -6,6 +6,7 @@ import {
 	updateGeneralUserData as serviceUpdateUserData,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
+	repairProfileImageSource as serviceRepairProfileImageSource,
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
@@ -105,5 +106,20 @@ export async function removeProfileImage(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /removeProfileImage" });
+	}
+}
+
+export async function repairProfileImageSource(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token } = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
+		const result = await serviceRepairProfileImageSource(username);
+		
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /repairProfileImageSource" });
 	}
 }

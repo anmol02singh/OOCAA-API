@@ -16,7 +16,7 @@ const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".
 //Function for phone number validation.
 const isValidPhoneNumber = (number: string): boolean => {
     const phoneNumber: PhoneNumber | undefined = parsePhoneNumberFromString(`+${number.replace(/\D/g, '')}`);
-    if(!(phoneNumber && phoneNumber.isValid())){
+    if (!(phoneNumber && phoneNumber.isValid())) {
         return false;
     }
     return true;
@@ -29,35 +29,35 @@ export const validateUserData = async (
     // newUsername?: string,
     newEmail?: string,
     newPhone?: string
-): Promise<{success: boolean; message: string}> => {
+): Promise<{ success: boolean; message: string }> => {
     //Check data is new and valid.
     if (newName && newName === account.name) {
-        return {success: false, message: "Please enter a new name."};
+        return { success: false, message: "Please enter a new name." };
     }
-    
+
     if (newEmail && newEmail === account.email) {
-        return {success: false, message: "Please enter a new email."};
-    }    
+        return { success: false, message: "Please enter a new email." };
+    }
     if (newEmail && !newEmail.match(isEmailFormat)) {
-        return {success: false, message: "Please enter a vailid email."};
+        return { success: false, message: "Please enter a vailid email." };
     }
 
     if (newPhone && newPhone === account.phoneNumber) {
-        return {success: false, message: "Please enter a new phone number."};
+        return { success: false, message: "Please enter a new phone number." };
     }
     if (newPhone && !isValidPhoneNumber(newPhone)) {
-        return {success: false, message: "Please enter a valid phone number."};
+        return { success: false, message: "Please enter a valid phone number." };
     }
 
     //Check data uniqueness.
     if (newEmail && await Account.findOne({ email: newEmail }).exec()) {
-        return {success: false, message: "This email address is already in use."};
+        return { success: false, message: "This email address is already in use." };
     }
     if (newPhone && await Account.findOne({ phoneNumber: newPhone }).exec()) {
-        return {success: false, message: "This phone number is already in use."};
+        return { success: false, message: "This phone number is already in use." };
     }
 
-    return {success: true, message: "User data valid."};
+    return { success: true, message: "User data valid." };
 };
 
 
@@ -85,11 +85,115 @@ export async function register(name: string, email: string, phone: string, usern
 
 export async function login(username: string, password: string): Promise<boolean> {
     const account = await Account.findOne({ username: username }).exec();
+    await repairProfileImageSource(username);
     return account ? bcrypt.compareSync(password, account.passwordHash) : false;
 };
 
+/*
+* Deletes the user's profileImage folder in the cloud If profileImage field is missing, and
+* Deletes the profileImage field in the user's account if their cloud folder is missing or empty.
+*/
+let repairRunning = false; //to deal with race conditions.
+export async function repairProfileImageSource(username: string): Promise<boolean> {
+    if(repairRunning) return false;
+
+    repairRunning = true;
+
+    try {
+        const account = await Account.findOne({ username: username }).exec();
+        if(!account) return false;
+        
+        const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
+
+        //Remove image and corresponding user folder if profileImage field is missing.
+        if (!account.profileImage) {
+            try {
+                await cloudinary.api.delete_resources_by_prefix(folder);
+                await cloudinary.api.delete_folder(folder);
+                //eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } catch (error: any) {            
+                if ((error.http_code && error.http_code === 420)
+                    || (error.error.http_code && error.error.http_code === 420
+                )) {
+                    console.error("Error deleting folder:", error);
+                    return false;
+                } else if ((error.http_code && error.http_code !== 404)
+                    || (error.error.http_code && error.error.http_code !== 404
+                )) {
+                    console.error("Error deleting folder:", error);
+                    throw error;
+                }
+            }
+            return true;
+        }
+
+        //Check if folder exists
+        let folderMissing = false;
+        try {
+            await cloudinary.api.sub_folders(folder);
+            folderMissing = false;
+            //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if (error.error.http_code === 420) {
+                console.error("Error deleting folder:", error);
+                return false;
+            } else if (error.error.http_code === 404) {
+                folderMissing = true;
+            } else {
+                console.error("Error checking folder:", error);
+                throw error;
+            }
+        }
+
+        //Check if folder is empty if it exists.
+        let folderEmpty = false;
+        if (!folderMissing) {
+            const { resources } = await cloudinary.api.resources({
+                type: "upload",
+                prefix: folder,
+                max_results: 1,
+            });
+            folderEmpty = resources.length <= 0;
+        }
+
+        //Delete profileImage field from user account if folder is empty or missing.
+        if (folderMissing || folderEmpty) {
+            //Also delete folder if folder is empty.
+            if (folderEmpty) {
+                try {
+                    await cloudinary.api.delete_folder(folder);
+                    //eslint-disable-next-line @typescript-eslint/no-explicit-any
+                } catch (error: any) {                
+                    if (error.error.http_code === 420) {
+                        console.error("Error deleting folder:", error);
+                        return false;
+                    } else if (error.error.http_code !== 404) {
+                        console.error("Error deleting folder:", error);
+                        throw error;
+                    }
+                }
+            }
+
+            const result = await Account.updateOne({ _id: account._id }, { $unset: { profileImage: 1 } }).exec()
+            if (result.matchedCount > 0 && result.modifiedCount > 0) {
+                return true;
+            } else {
+                console.log(result);
+                throw new Error("Error updating account in database.");
+            }
+        }
+    } catch (err) {
+        console.error('Error executing profile image source repair:', err);
+        return false;
+    } finally {
+        repairRunning = false;
+    }
+    return true;
+}
+
 export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
+    
     return account ? {
         name: account.name,
         username: username,
@@ -107,20 +211,20 @@ export async function updateGeneralUserData(
     // newUsername?: string,
     newEmail?: string,
     newPhone?: string
-): Promise<{success: boolean; message: string}> {
-    
+): Promise<{ success: boolean; message: string }> {
+
     //Check if at least 1 piece of new data was given and cancel data updating if not.
-    if(!newName /*&& !newUsername*/ && !newEmail && !newPhone){
-        return {success: false, message: "User account update cancelled: no new data was given."};
+    if (!newName /*&& !newUsername*/ && !newEmail && !newPhone) {
+        return { success: false, message: "User account update cancelled: no new data was given." };
     }
 
     //User object to update.
     const account = await Account.findOne({ username: currentUsername }).exec();
-    if(!account) return {success: false, message: "User account update cancelled: account with given username could not be found."};
+    if (!account) return { success: false, message: "User account update cancelled: account with given username could not be found." };
 
     //Validate data.
     const dataValidation = await validateUserData(account, newName, newEmail, newPhone);
-    if(!dataValidation.success) return dataValidation;
+    if (!dataValidation.success) return dataValidation;
 
     //Updated user account object.
     const updatedAccount = {
@@ -131,22 +235,30 @@ export async function updateGeneralUserData(
     };
 
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
-    if(result.matchedCount > 0 && result.modifiedCount > 0){
-        return {success: true, message: "User account successfully updated"};
-    }else{
+    if (result.matchedCount > 0 && result.modifiedCount > 0) {
+        return { success: true, message: "User account successfully updated" };
+    } else {
         throw new Error("Error updating account in database.");
     }
 };
 
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
-    
+
     //User object to update.
     const account = await Account.findOne({ username: currentUsername }).exec();
-    if(!account) return false;
+    if (!account) return false;
 
     //Upload image.
     const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
-    await cloudinary.api.delete_resources_by_prefix(folder);
+    try {
+        await cloudinary.api.delete_resources_by_prefix(folder);
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {        
+        if (error.http_code && error.http_code !== 404) {
+            console.error("Error deleting folder:", error);
+            throw error;
+        }
+    }
     const uploadedImage = await cloudinary.uploader.upload(newImage, {
         folder: folder,
     })
@@ -161,29 +273,47 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
 
     //Update user account.
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
-    if(result.matchedCount > 0 && result.modifiedCount > 0){
+    if (result.matchedCount > 0 && result.modifiedCount > 0) {
         return true;
-    }else{
+    } else {
+        console.log(result);
         throw new Error("Error updating account in database.");
     }
 };
 
 export async function removeProfileImage(currentUsername: string): Promise<boolean> {
-    
+
     //User object to remove from.
     const account = await Account.findOne({ username: currentUsername }).exec();
-    if(!account) return false;
+    if (!account) return false;
 
-    //Remove image.
+    //Remove image and corresponding user folder.
     const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
-    await cloudinary.api.delete_resources_by_prefix(folder);
+    try {
+        await cloudinary.api.delete_resources_by_prefix(folder);
+        await cloudinary.api.delete_folder(folder);
+        //eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {        
+        if ((error.http_code && error.http_code === 420)
+            || (error.error.http_code && error.error.http_code === 420
+        )) {
+            console.error("Error deleting folder:", error);
+            return false;
+        } else if ((error.http_code && error.http_code !== 404)
+            || (error.error.http_code && error.error.http_code !== 404
+        )) {
+            console.error("Error deleting folder:", error);
+            throw error;
+        }
+    }
 
     //Update user account.
-    if(!account.profileImage) return false;
+    if (!account.profileImage) return false;
     const result = await Account.updateOne({ _id: account._id }, { $unset: { profileImage: 1 } }).exec()
-    if(result.matchedCount > 0 && result.modifiedCount > 0){
+    if (result.matchedCount > 0 && result.modifiedCount > 0) {
         return true;
-    }else{
+    } else {
+        console.log(result);
         throw new Error("Error updating account in database.");
     }
 };

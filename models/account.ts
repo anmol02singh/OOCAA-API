@@ -17,4 +17,4 @@ const accountSchema = new mongoose.Schema({
 });
 
 export default mongoose.model('Account', accountSchema);
-export type AccountType = InferSchemaType<typeof accountSchema>;
+export type AccountType = InferSchemaType<typeof accountSchema> & { _id: mongoose.Types.ObjectId };
