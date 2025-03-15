@@ -7,6 +7,7 @@ import {
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
+	changePassword as serviceChangePassword
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
@@ -123,3 +124,29 @@ export async function repairProfileImageSource(req: Request, res: Response) {
 		res.status(500).json({ message: "Internal server error at /repairProfileImageSource" });
 	}
 }
+// Add to accountController.ts
+export async function changePassword(req: Request, res: Response) {
+    const secret = process.env.JWT_SECRET_KEY;
+    const { token, currentPassword, newPassword } = req.body;
+    
+    try {
+        if (!secret) throw new Error("JWT_SECRET_KEY is not set");
+        const { username } = jwt.verify(token, secret) as JwtPayload;
+        
+        const result = await serviceChangePassword(username, currentPassword, newPassword);
+        
+        if (result.success) {
+            res.status(200).json({
+                success: true,
+                message: result.message,
+                token: newAccessToken(username)
+            });
+        } else {
+            res.status(400).json(result);
+        }
+    } catch (error) {
+        console.error(error);
+		res.status(500).json({ message: "Invalid" });
+    }
+}
+

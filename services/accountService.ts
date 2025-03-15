@@ -1,3 +1,4 @@
+// import { changePassword } from '../controllers/accountController';
 import {
     register as repoRegister,
     login as repoLogin,
@@ -6,6 +7,7 @@ import {
     updateProfileImage as repoUpdateProfileImage,
     removeProfileImage as repoRemoveProfileImage,
     repairProfileImageSource as repoRepairProfileImageSource,
+    changePassword as repoChangePassword 
 } from '../repositories/accountRepository';
 
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
@@ -46,4 +48,31 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
 
 export async function repairProfileImageSource(currentUsername: string): Promise<boolean> {
     return await repoRepairProfileImageSource(currentUsername);
+}
+export async function changePassword(
+    currentUsername: string,
+    currentPassword: string,
+    newPassword: string
+): Promise<{ success: boolean; message: string }> {
+    try {
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return { 
+                success: false, 
+                message: "Password must contain: 8+ characters, 1 uppercase, 1 lowercase, 1 number, 1 special character" 
+            };
+        }
+
+        const success = await repoChangePassword(currentUsername, currentPassword, newPassword);
+        
+        return {
+            success,
+            message: success ? "Password updated successfully" : "Password change failed"
+        };
+    } catch (error) {
+        return {
+            success: false,
+            message: error instanceof Error ? error.message : "Password change failed"
+        };
+    }
 }

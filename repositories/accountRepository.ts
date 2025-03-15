@@ -320,3 +320,27 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         throw new Error("Error updating account in database.");
     }
 };
+export const changePassword = async (
+    username: string,
+    currentPassword: string,
+    newPassword: string
+): Promise<boolean> => {
+    const account = await Account.findOne({ username }).exec();
+    if (!account) throw new Error("User not found");
+    
+    // Verify current password
+    if (!bcrypt.compareSync(currentPassword, account.passwordHash)) {
+        throw new Error("Invalid current password");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const newHash = bcrypt.hashSync(newPassword, salt);
+
+    // Update password
+    const result = await Account.updateOne(
+        { _id: account._id },
+        { $set: { passwordHash: newHash } }
+    ).exec();
+
+    return result.modifiedCount === 1;
+};
