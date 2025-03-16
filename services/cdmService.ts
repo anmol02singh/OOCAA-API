@@ -118,7 +118,7 @@ async function saveCDMDataToDB(folderId: string) {
                 batch.map(async (file) => {
                     const data = await downloadFile(file.id, file.mimeType);
                     const newData = {
-                        event: null,
+                        event: null as Types.ObjectId | null,
                         ccsdsCdmVers: data.CCSDS_CDM_VERS,
                         creationDate: parseDate(data.CREATION_DATE),
                         originator: data.ORIGINATOR,
@@ -273,5 +273,5 @@ export {
     fetchAllCDMData,
     fetchCDMDataById,
     saveCDMDataToDB,
-    fetchCDMsByEvent
+    fetchCDMsByEvent,
 };

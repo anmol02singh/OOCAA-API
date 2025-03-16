@@ -83,12 +83,12 @@ async function getOrCreateEvent(cdmData: any) {
         await event.save();
     }
     return event;
-}
+};
 
 export {
     getAllCDMData,
     getCDMDataById,
     saveCDMData,
     getOrCreateEvent,
-    getCDMsForEvent
+    getCDMsForEvent,
 };
