@@ -75,7 +75,7 @@ export async function register(name: string, email: string, phone: string, usern
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: "user" });
+    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
     if (await account.save()) {
         return "";
     } else {

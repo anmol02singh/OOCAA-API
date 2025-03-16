@@ -6,7 +6,7 @@ const accountSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: false },
-    role: { type: String, required: true },
+    role: { type: Number, required: true },
     profileImage: {
         type: {
             publicId: { type: String, required: false },
