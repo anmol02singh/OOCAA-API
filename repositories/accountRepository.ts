@@ -219,6 +219,7 @@ export async function getAccounts(
             role,
             email,
             phoneNumber,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).filter(([key, value]) => value !== undefined)
     );
 
