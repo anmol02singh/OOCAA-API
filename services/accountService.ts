@@ -2,7 +2,7 @@ import {
     register as repoRegister,
     login as repoLogin,
     userdata as repoUserdata,
-    getAllAccounts as repoGetAllAccounts,
+    getAccounts as repoGetAccounts,
     updateGeneralUserData as repoUpdateUserData,
     updateProfileImage as repoUpdateProfileImage,
     removeProfileImage as repoRemoveProfileImage,
@@ -21,8 +21,20 @@ export async function userdata(username: string): Promise<object> {
     return await repoUserdata(username);
 };
 
-export async function getAllAccounts(role: number): Promise<object>{
-    return await repoGetAllAccounts(role);
+export async function getAccounts(
+    name?: string,
+    username?: string,
+    role?: number,
+    email?: string,
+    phoneNumber?: string,
+): Promise<object>{
+    return await repoGetAccounts(
+        name,
+        username,
+        role,
+        email,
+        phoneNumber,
+    );
 }
 
 export async function updateGeneralUserData(

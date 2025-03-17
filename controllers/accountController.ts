@@ -3,7 +3,7 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
-	getAllAccounts as serviceGetAllAccounts,
+	getAccounts as serviceGetAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
@@ -67,15 +67,22 @@ export async function userdata(req: Request, res: Response) {
 	}
 }
 
-export async function getAllAccounts(req: Request, res: Response) {
+export async function getAccounts(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
-	const { token, role } = req.body;
+	const {
+		token,
+		name,
+		username,
+		role,
+		email,
+		phoneNumber,
+	} = req.body;
 	try {
 		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
-		const { username } = jwt.verify(token, secret) as JwtPayload;
+		const { currentUsername } = jwt.verify(token, secret) as JwtPayload;
 		
 		//Check requester is an admin.
-		const isAdmin = await serviceUserdata(username)
+		const isAdmin = await serviceUserdata(currentUsername)
 		.then(json => {
 			if((json as AccountType).role < 1){
 				return true;
@@ -89,7 +96,13 @@ export async function getAllAccounts(req: Request, res: Response) {
 		if(!isAdmin) return;
 
 		//Get and return accounts.
-		const accounts  = await serviceGetAllAccounts(role);		
+		const accounts  = await serviceGetAccounts(
+			name,
+			username,
+			role,
+			email,
+			phoneNumber,
+		);		
 		res.status(200).json(accounts);
 	} catch (error) {
 		console.error(error);

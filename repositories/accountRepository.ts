@@ -205,8 +205,20 @@ export async function userdata(username: string): Promise<object> {
     } : {};
 }
 
-export async function getAllAccounts(role?: number): Promise<object>{
-    return await Account.find({ role: role }).exec(); 
+export async function getAccounts(
+    name?: string,
+    username?: string,
+    role?: number,
+    email?: string,
+    phoneNumber?: string,
+): Promise<object>{
+    return await Account.find({
+        name: name,
+        username: username,
+        role: role,
+        email: email,
+        phoneNumber: phoneNumber
+    }).exec(); 
 }
 
 export async function updateGeneralUserData(
