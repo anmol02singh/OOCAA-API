@@ -3,12 +3,14 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
+	getAllAccounts as serviceGetAllAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import { AccountType } from '../models/account';
 
 export async function register(req: Request, res: Response) {
 	const { name, email, phone, username, password } = req.body;
@@ -59,6 +61,36 @@ export async function userdata(req: Request, res: Response) {
 		const { username } = jwt.verify(token, secret)  as JwtPayload;
 		const userdata = await serviceUserdata(username);
 		res.status(200).json(userdata);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /userdata" });
+	}
+}
+
+export async function getAllAccounts(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token, role } = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
+		
+		//Check requester is an admin.
+		const isAdmin = await serviceUserdata(username)
+		.then(json => {
+			if((json as AccountType).role < 1){
+				return true;
+			} else if((json as AccountType).role >= 1) {
+				res.status(403).json({ message: "User does not have permission to request /getAllAccounts" });
+				return false;
+			} else {
+				throw new Error("Error parsing json as Account");
+			}		
+		})
+		if(!isAdmin) return;
+
+		//Get and return accounts.
+		const accounts  = await serviceGetAllAccounts(role);		
+		res.status(200).json(accounts);
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /userdata" });
