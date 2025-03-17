@@ -95,14 +95,14 @@ export async function login(username: string, password: string): Promise<boolean
 */
 let repairRunning = false; //to deal with race conditions.
 export async function repairProfileImageSource(username: string): Promise<boolean> {
-    if(repairRunning) return false;
+    if (repairRunning) return false;
 
     repairRunning = true;
 
     try {
         const account = await Account.findOne({ username: username }).exec();
-        if(!account) return false;
-        
+        if (!account) return false;
+
         const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
 
         //Remove image and corresponding user folder if profileImage field is missing.
@@ -111,15 +111,15 @@ export async function repairProfileImageSource(username: string): Promise<boolea
                 await cloudinary.api.delete_resources_by_prefix(folder);
                 await cloudinary.api.delete_folder(folder);
                 //eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (error: any) {            
+            } catch (error: any) {
                 if ((error.http_code && error.http_code === 420)
                     || (error.error.http_code && error.error.http_code === 420
-                )) {
+                    )) {
                     console.error("Error deleting folder:", error);
                     return false;
                 } else if ((error.http_code && error.http_code !== 404)
                     || (error.error.http_code && error.error.http_code !== 404
-                )) {
+                    )) {
                     console.error("Error deleting folder:", error);
                     throw error;
                 }
@@ -163,7 +163,7 @@ export async function repairProfileImageSource(username: string): Promise<boolea
                 try {
                     await cloudinary.api.delete_folder(folder);
                     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-                } catch (error: any) {                
+                } catch (error: any) {
                     if (error.error.http_code === 420) {
                         console.error("Error deleting folder:", error);
                         return false;
@@ -193,7 +193,7 @@ export async function repairProfileImageSource(username: string): Promise<boolea
 
 export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
-    
+
     return account ? {
         name: account.name,
         username: username,
@@ -211,14 +211,18 @@ export async function getAccounts(
     role?: number,
     email?: string,
     phoneNumber?: string,
-): Promise<object>{
-    return await Account.find({
-        name: name,
-        username: username,
-        role: role,
-        email: email,
-        phoneNumber: phoneNumber
-    }).exec(); 
+): Promise<object> {
+    const parameters = Object.fromEntries(
+        Object.entries({
+            name,
+            username,
+            role,
+            email,
+            phoneNumber,
+        }).filter(([key, value]) => value !== undefined)
+    );
+
+    return await Account.find(parameters).exec();
 }
 
 export async function updateGeneralUserData(
@@ -269,7 +273,7 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
     try {
         await cloudinary.api.delete_resources_by_prefix(folder);
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {        
+    } catch (error: any) {
         if (error.http_code === 420) {
             console.error("Error deleting folder:", error);
             return false;
@@ -312,15 +316,15 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         await cloudinary.api.delete_resources_by_prefix(folder);
         await cloudinary.api.delete_folder(folder);
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {        
+    } catch (error: any) {
         if ((error.http_code && error.http_code === 420)
             || (error.error.http_code && error.error.http_code === 420
-        )) {
+            )) {
             console.error("Error deleting folder:", error);
             return false;
         } else if ((error.http_code && error.http_code !== 404)
             || (error.error.http_code && error.error.http_code !== 404
-        )) {
+            )) {
             console.error("Error deleting folder:", error);
             throw error;
         }
