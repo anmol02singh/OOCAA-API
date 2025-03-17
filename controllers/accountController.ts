@@ -79,7 +79,7 @@ export async function getAccounts(req: Request, res: Response) {
 	} = req.body;
 	try {
 		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
-		const { currentUsername } = jwt.verify(token, secret) as JwtPayload;
+		const { username: currentUsername } = jwt.verify(token, secret) as JwtPayload;
 		
 		//Check requester is an admin.
 		const isAdmin = await serviceUserdata(currentUsername)
@@ -90,7 +90,7 @@ export async function getAccounts(req: Request, res: Response) {
 				res.status(403).json({ message: "User does not have permission to request /getAllAccounts" });
 				return false;
 			} else {
-				throw new Error("Error parsing json as Account");
+                throw new Error("Error parsing json as Account");
 			}		
 		})
 		if(!isAdmin) return;
