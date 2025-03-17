@@ -74,3 +74,8 @@ Server Started
 Connected to Database
 
 everything should be working, you can test the endpoints via postman or curl
+
+## Testing
+This system can be tested using the command `npm test`.
+
+These tests will only work if there is an account with username "testuser" and password "testpass".  It also only works when the system is running.
