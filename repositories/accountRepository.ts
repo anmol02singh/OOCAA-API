@@ -214,16 +214,19 @@ export async function getAccounts(
 ): Promise<object> {
     const parameters = Object.fromEntries(
         Object.entries({
-            name,
-            username,
+            name: { $regex: name, $options: "i" },
+            username: { $regex: username, $options: "i" },
             role,
-            email,
-            phoneNumber,
+            email: { $regex: email, $options: "i" },
+            phoneNumber: { $regex: phoneNumber, $options: "i" },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        }).filter(([key, value]) => value !== undefined)
+        }).filter(([key, value]) =>
+            value !== undefined
+            && ((typeof value !== 'number') && (value.$regex !== undefined)))
     );
 
-    return await Account.find(parameters).exec();
+    const test = await Account.find(parameters).exec();
+    return test;
 }
 
 export async function updateGeneralUserData(
