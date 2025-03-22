@@ -124,7 +124,6 @@ export async function repairProfileImageSource(req: Request, res: Response) {
 		res.status(500).json({ message: "Internal server error at /repairProfileImageSource" });
 	}
 }
-// Add to accountController.ts
 export async function changePassword(req: Request, res: Response) {
     const secret = process.env.JWT_SECRET_KEY;
     const { token, currentPassword, newPassword } = req.body;
