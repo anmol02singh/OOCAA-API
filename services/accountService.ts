@@ -4,6 +4,7 @@ import {
     userdata as repoUserdata,
     getAccounts as repoGetAccounts,
     updateGeneralUserData as repoUpdateUserData,
+    deleteAccounts as repoDeleteAccounts,
     updateProfileImage as repoUpdateProfileImage,
     removeProfileImage as repoRemoveProfileImage,
     repairProfileImageSource as repoRepairProfileImageSource,
@@ -52,6 +53,10 @@ export async function updateGeneralUserData(
         newPhone
     );
 };
+
+export async function deleteAccounts(usernames: string): Promise<boolean> {
+    return await repoDeleteAccounts(usernames);
+}
 
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
     return await repoUpdateProfileImage(currentUsername, newImage);

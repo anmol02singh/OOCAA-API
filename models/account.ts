@@ -1,7 +1,6 @@
 import mongoose, { InferSchemaType } from 'mongoose';
 
 const accountSchema = new mongoose.Schema({
-    _id: { type: mongoose.Types.ObjectId, required: false },
     name: { type: String, required: false },
     username: { type: String, required: true },
     passwordHash: { type: String, required: true },

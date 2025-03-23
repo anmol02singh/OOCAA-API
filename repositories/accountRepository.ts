@@ -266,6 +266,26 @@ export async function updateGeneralUserData(
     }
 };
 
+export async function deleteAccounts(
+    usernames: string,
+): Promise<boolean> {
+
+    //User objects to delete.
+    const accounts = await Account.find({ username: { $in: usernames } }).exec();
+    if (!accounts) return false;
+
+    //Ids of user objects to delete.
+    const ids = accounts.map(account => account._id);
+
+    //Delete account object.
+    const result = await Account.deleteMany({ _id: { $in: ids } }).exec()
+    if (result.deletedCount > 0) {
+        return true;
+    } else {
+        throw new Error("Error deleting account in database.");
+    }
+};
+
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
 
     //User object to update.
