@@ -5,6 +5,7 @@ import {
     userdata,
     getAccounts,
     updateGeneralUserData,
+    updateAccountsRole,
     deleteAccounts,
     updateProfileImage,
     removeProfileImage,
@@ -18,7 +19,8 @@ router.post('/login', login);
 router.post('/userdata', userdata);
 router.post('/getAccounts', getAccounts);
 router.put('/updateGeneralUserData', updateGeneralUserData);
-router.put('/deleteAccounts', deleteAccounts);
+router.put('/updateAccountsRole', updateAccountsRole);
+router.delete('/deleteAccounts', deleteAccounts);
 router.put('/updateProfileImage', updateProfileImage);
 router.delete('/removeProfileImage', removeProfileImage);
 router.delete('/repairProfileImageSource', repairProfileImageSource);

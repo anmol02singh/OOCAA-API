@@ -5,6 +5,7 @@ import {
 	userdata as serviceUserdata,
 	getAccounts as serviceGetAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
+    updateAccountsRole as serviceUpdateAccountsRole,
     deleteAccounts as serviceDeleteAccounts,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
@@ -125,6 +126,40 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	}
 }
 
+export async function updateAccountsRole(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const {
+		token,
+		usernames,
+        role,
+	} = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username: currentUsername } = jwt.verify(token, secret) as JwtPayload;
+		
+		//Check requester is an admin.
+		const isAdmin = await serviceUserdata(currentUsername)
+		.then(json => {
+			if((json as AccountType).role < 1){
+				return true;
+			} else if((json as AccountType).role >= 1) {
+				res.status(403).json({ message: "User does not have permission to request /updateAccountsRole" });
+				return false;
+			} else {
+                throw new Error("Error parsing json as Account");
+			}		
+		})
+		if(!isAdmin) return;
+
+		//Update accounts.
+		const result  = await serviceUpdateAccountsRole(usernames, role);
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /updateAccountsRole" });
+	}
+}
+
 export async function deleteAccounts(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const {
@@ -141,7 +176,7 @@ export async function deleteAccounts(req: Request, res: Response) {
 			if((json as AccountType).role < 1){
 				return true;
 			} else if((json as AccountType).role >= 1) {
-				res.status(403).json({ message: "User does not have permission to request /getAllAccounts" });
+				res.status(403).json({ message: "User does not have permission to request /deleteAccounts" });
 				return false;
 			} else {
                 throw new Error("Error parsing json as Account");
@@ -154,7 +189,7 @@ export async function deleteAccounts(req: Request, res: Response) {
 		res.status(200).json(result);
 	} catch (error) {
 		console.error(error);
-		res.status(500).json({ message: "Internal server error at /deleteAccount" });
+		res.status(500).json({ message: "Internal server error at /deleteAccounts" });
 	}
 }
 

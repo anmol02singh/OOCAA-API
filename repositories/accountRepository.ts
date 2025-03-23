@@ -266,6 +266,30 @@ export async function updateGeneralUserData(
     }
 };
 
+export async function updateAccountsRole(
+    usernames: string,
+    role: number,
+): Promise<boolean> {
+
+    //Make sure role is between 0 and 2.
+    if (role < 0 || role > 2) return false;
+
+    //User objects to update.
+    const accounts = await Account.find({ username: { $in: usernames } }).exec();
+    if (!accounts) return false;
+
+    //Ids of user objects to update.
+    const ids = accounts.map(account => account._id);
+
+    //Update role in given accounts.
+    const result = await Account.updateMany({ _id: { $in: ids } }, {role: role}).exec()
+    if (result.matchedCount > 0 && result.modifiedCount > 0) {
+        return true;
+    } else {
+        throw new Error("Error updating account in database.");
+    }
+};
+
 export async function deleteAccounts(
     usernames: string,
 ): Promise<boolean> {
