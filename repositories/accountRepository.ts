@@ -214,15 +214,16 @@ export async function getAccounts(
 ): Promise<object> {
     const parameters = Object.fromEntries(
         Object.entries({
-            name: { $regex: name, $options: "i" },
+            name: name === "" ? name : { $regex: name, $options: "i" },
             username: { $regex: username, $options: "i" },
             role,
             email: { $regex: email, $options: "i" },
-            phoneNumber: { $regex: phoneNumber, $options: "i" },
+            phoneNumber: phoneNumber === "" ? phoneNumber : { $regex: phoneNumber, $options: "i" },
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).filter(([key, value]) =>
-            value !== undefined
-            && ((typeof value !== 'number') && (value.$regex !== undefined)))
+            !(value === undefined
+            || ((typeof value !== 'number' && typeof value !== 'string')
+                && (value.$regex === undefined))))
     );
 
     const test = await Account.find(parameters).exec();
@@ -238,7 +239,11 @@ export async function updateGeneralUserData(
 ): Promise<{ success: boolean; message: string }> {
 
     //Check if at least 1 piece of new data was given and cancel data updating if not.
-    if (!newName /*&& !newUsername*/ && !newEmail && !newPhone) {
+    if (newName === undefined
+        //&& !newUsername
+        && !newEmail
+        && newPhone === undefined
+    ) {
         return { success: false, message: "User account update cancelled: no new data was given." };
     }
 
@@ -252,10 +257,10 @@ export async function updateGeneralUserData(
 
     //Updated user account object.
     const updatedAccount = {
-        name: newName ? newName : account.name,
+        name: newName !== undefined ? newName : account.name,
         // username: newUsername ? newUsername : account.username,
         email: newEmail ? newEmail : account.email,
-        phoneNumber: newPhone ? newPhone : account.phoneNumber,
+        phoneNumber: newPhone !== undefined ? newPhone : account.phoneNumber,
     };
 
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
@@ -277,6 +282,9 @@ export async function updateAccountsRole(
     //User objects to update.
     const accounts = await Account.find({ username: { $in: usernames } }).exec();
     if (!accounts) return false;
+
+    //Cancel update if all the current role of all the accounts is the same as the new role.
+    if(accounts.filter(account => account.role !== role).length <= 0) return true;
 
     //Ids of user objects to update.
     const ids = accounts.map(account => account._id);
