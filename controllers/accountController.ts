@@ -3,6 +3,7 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
+	deleteAccount as serviceDelete,
 	updateGeneralUserData as serviceUpdateUserData,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
@@ -76,6 +77,17 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
+	}
+}
+
+export async function deleteAccount(req: Request, res: Response) {
+	const { username } = req.body;
+	try {
+		const success = await serviceDelete(username);
+		res.status(200).json({ success: success });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /login" });
 	}
 }
 

@@ -3,6 +3,7 @@ import {
     register,
     login,
     userdata,
+    deleteAccount,
     updateGeneralUserData,
     updateProfileImage,
     removeProfileImage,
@@ -14,6 +15,7 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/userdata', userdata);
+router.post('/deleteAccount', deleteAccount);
 router.put('/updateGeneralUserData', updateGeneralUserData);
 router.put('/updateProfileImage', updateProfileImage);
 router.delete('/removeProfileImage', removeProfileImage);
