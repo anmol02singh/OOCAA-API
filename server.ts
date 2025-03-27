@@ -11,10 +11,10 @@ const app = express();
 
 connectToDatabase();
 
-app.use(express.json());
+app.use(express.json({ limit: "150kb" }));
 
 app.use(cors());
-app.use(bodyParser.urlencoded({ extended: true}));
+app.use(bodyParser.urlencoded({ limit: "150kb", extended: true }));
 
 app.use('/cdm-data', cdmRoutes);
 app.use('/', otherRoutes);
