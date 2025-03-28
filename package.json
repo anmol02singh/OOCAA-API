@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "devStart": "NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts"
+    "devStart": "cross-env NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts"
   },
   "keywords": [],
   "author": "",
