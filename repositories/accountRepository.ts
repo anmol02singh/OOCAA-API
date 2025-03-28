@@ -195,6 +195,7 @@ export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
 
     return account ? {
+        _id: account._id,
         name: account.name,
         username: username,
         role: account.role,

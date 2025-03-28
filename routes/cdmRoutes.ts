@@ -1,11 +1,18 @@
 import express from 'express';
+import { getAllCDMData, getCDMDataById, saveCDMData, getCDMsByEvent } from '../controllers/cdmController';
+import { searchEvents } from '../controllers/searchController';
+import { fetchTLEs } from '../controllers/tleController';
+import { subscribeToEvent, fetchUserWatchlist } from '../controllers/watchlistController';
+
 const router = express.Router();
-import { getAllCDMData, getCDMDataById, saveCDMData, getCDMDataByEvent, getEvents } from '../controllers/cdmController';
 
 router.get('/', getAllCDMData);
 router.get('/:id', getCDMDataById);
-router.post('/save/:event', saveCDMData);
-router.get('/get/:event', getCDMDataByEvent); 
-router.get('/events', getEvents);
+router.post('/sync-cdms', saveCDMData);
+router.post('/search', searchEvents);
+router.post('/fetchTLEs', fetchTLEs);
+router.get('/by-event/:eventId', getCDMsByEvent);
+router.post('/subscribe', subscribeToEvent);
+router.get('/watchlist/:userId', fetchUserWatchlist);
 
-export default router
+export default router;
