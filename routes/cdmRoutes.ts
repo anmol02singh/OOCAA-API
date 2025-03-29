@@ -13,6 +13,7 @@ router.post('/search', searchEvents);
 router.post('/fetchTLEs', fetchTLEs);
 router.get('/by-event/:eventId', getCDMsByEvent);
 router.post('/subscribe', subscribeToEvent);
+//change to subsrcibe to object
 router.get('/watchlist/:userId', fetchUserWatchlist);
 
 export default router;
