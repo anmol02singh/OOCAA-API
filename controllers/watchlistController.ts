@@ -1,4 +1,4 @@
-import { addToWatchlist, getwatchlist } from "../services/watchlistService";
+import { addToWatchlist, getwatchlist, serviceDeleteEvent } from "../services/watchlistService";
 import { Request, Response } from 'express';
 
 export const subscribeToEvent = async (req: Request, res: Response): Promise<void> => {
@@ -28,5 +28,20 @@ export const fetchUserWatchlist = async (req: Request, res: Response): Promise<v
     } catch (error) {
         console.error('Error in controller (fetchUserWatchlist):', error);
         res.status(500).json({ message: 'Error fetching user watchlist' });
+    }
+};
+
+export const deleteEvent = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const { eventId } = req.params;
+        if (!eventId) {
+            res.status(400).json({ message: 'Missing required parameter: eventId' });
+            return;
+        }
+        const data = await serviceDeleteEvent(eventId);
+        res.status(200).json(data);
+    } catch (error) {
+        console.error('Error in controller (deleteEvent):', error);
+        res.status(500).json({ message: 'Error deleting event from watchlist' });
     }
 };

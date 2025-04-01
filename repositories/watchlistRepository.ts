@@ -20,4 +20,13 @@ export const getWatchlistByUser = async (userId: string) => {
         console.error('Error in repository (getWatchlistByUser):', error);
         throw error;
     }
-}
+};
+
+export const repoDeleteEvent = async (eventId: string) => {
+    try {
+        return await watchlist.deleteOne({ event: eventId });
+    } catch (error) {
+        console.error('Error in repository (repoDeleteEvent):', error);
+        throw error;
+    }
+};

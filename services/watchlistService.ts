@@ -1,4 +1,4 @@
-import { addWatchlistEntry, getWatchlistByUser } from "../repositories/watchlistRepository";
+import { addWatchlistEntry, getWatchlistByUser, repoDeleteEvent } from "../repositories/watchlistRepository";
 
 async function addToWatchlist (userId: string, eventId: string) {
     try {
@@ -18,7 +18,17 @@ async function getwatchlist (userId: string) {
     }
 };
 
+async function serviceDeleteEvent (eventId: string) {  
+    try {
+        return await repoDeleteEvent(eventId);
+    } catch (error) {
+        console.error('Error in service (deleteEvent):', error);
+        throw error;
+    }
+};
+
 export {
     addToWatchlist,
     getwatchlist,
+    serviceDeleteEvent,
 }
