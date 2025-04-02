@@ -3,7 +3,10 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
+	getAccounts as serviceGetAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
+    updateAccountsRole as serviceUpdateAccountsRole,
+    deleteAccounts as serviceDeleteAccounts,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
@@ -11,6 +14,7 @@ import {
 	changeUsername as serviceChangeUsername
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
+import { AccountType } from '../models/account';
 
 export async function register(req: Request, res: Response) {
 	const { name, email, phone, username, password } = req.body;
@@ -67,6 +71,49 @@ export async function userdata(req: Request, res: Response) {
 	}
 }
 
+export async function getAccounts(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const {
+		token,
+		name,
+		username,
+		role,
+		email,
+		phoneNumber,
+	} = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username: currentUsername } = jwt.verify(token, secret) as JwtPayload;
+		
+		//Check requester is an admin.
+		const isAdmin = await serviceUserdata(currentUsername)
+		.then(json => {
+			if((json as AccountType).role < 1){
+				return true;
+			} else if((json as AccountType).role >= 1) {
+				res.status(403).json({ message: "User does not have permission to request /getAllAccounts" });
+				return false;
+			} else {
+                throw new Error("Error parsing json as Account");
+			}		
+		})
+		if(!isAdmin) return;
+
+		//Get and return accounts.
+		const accounts  = await serviceGetAccounts(
+			name,
+			username,
+			role,
+			email,
+			phoneNumber,
+		);		
+		res.status(200).json(accounts);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /userdata" });
+	}
+}
+
 export async function updateGeneralUserData(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const { token, newName, /*newUsername,*/ newEmail, newPhone } = req.body;
@@ -78,6 +125,73 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
+	}
+}
+
+export async function updateAccountsRole(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const {
+		token,
+		usernames,
+        role,
+	} = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username: currentUsername } = jwt.verify(token, secret) as JwtPayload;
+		
+		//Check requester is an admin.
+		const isAdmin = await serviceUserdata(currentUsername)
+		.then(json => {
+			if((json as AccountType).role < 1){
+				return true;
+			} else if((json as AccountType).role >= 1) {
+				res.status(403).json({ message: "User does not have permission to request /updateAccountsRole" });
+				return false;
+			} else {
+                throw new Error("Error parsing json as Account");
+			}		
+		})
+		if(!isAdmin) return;
+
+		//Update accounts.
+		const result  = await serviceUpdateAccountsRole(usernames, role);
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /updateAccountsRole" });
+	}
+}
+
+export async function deleteAccounts(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const {
+		token,
+		usernames,
+	} = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username: currentUsername } = jwt.verify(token, secret) as JwtPayload;
+		
+		//Check requester is an admin.
+		const isAdmin = await serviceUserdata(currentUsername)
+		.then(json => {
+			if((json as AccountType).role < 1){
+				return true;
+			} else if((json as AccountType).role >= 1) {
+				res.status(403).json({ message: "User does not have permission to request /deleteAccounts" });
+				return false;
+			} else {
+                throw new Error("Error parsing json as Account");
+			}		
+		})
+		if(!isAdmin) return;
+
+		//Delete account.
+		const result  = await serviceDeleteAccounts(usernames);
+		res.status(200).json(result);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /deleteAccounts" });
 	}
 }
 
