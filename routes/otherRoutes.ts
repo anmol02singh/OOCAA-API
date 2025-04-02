@@ -7,7 +7,8 @@ import {
     updateProfileImage,
     removeProfileImage,
     repairProfileImageSource,
-    changePassword
+    changePassword,
+    changeUsername
 } from '../controllers/accountController';
 
 const router = express.Router();
@@ -20,5 +21,6 @@ router.put('/updateProfileImage', updateProfileImage);
 router.delete('/removeProfileImage', removeProfileImage);
 router.delete('/repairProfileImageSource', repairProfileImageSource);
 router.post('/change-password', changePassword);
+router.post('/change-username', changeUsername);
 
 export default router

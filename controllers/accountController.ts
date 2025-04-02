@@ -7,7 +7,8 @@ import {
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
-	changePassword as serviceChangePassword
+	changePassword as serviceChangePassword,
+	changeUsername as serviceChangeUsername
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 
@@ -147,5 +148,31 @@ export async function changePassword(req: Request, res: Response) {
         console.error(error);
 		res.status(500).json({ message: "Invalid" });
     }
+}
+export async function changeUsername(req: Request, res: Response) {
+    const secret = process.env.JWT_SECRET_KEY;
+    const { token, newUsername } = req.body;
+    
+
+        if (!secret) throw new Error("JWT_SECRET_KEY is not set");
+        
+        const decoded = jwt.verify(token, secret) as JwtPayload;
+        const currentUsername = decoded.username;
+
+        const result = await serviceChangeUsername(currentUsername, newUsername);
+        
+        if (result.success) {
+            const newToken = newAccessToken(newUsername);
+            
+            res.status(200).json({
+                success: true,
+                message: result.message,
+                token: newToken
+            });
+        } else {
+            res.status(400).json(result);
+        }
+        
+   
 }
 
