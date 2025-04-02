@@ -452,7 +452,6 @@ export const changeUsername = async (
         { $set: { username: newUsername } }
     ).exec();
     const updatedUser = await Account.findOne({ username: newUsername }).exec();
-    const token = generateNewToken(updatedUser);
     if (result.matchedCount === 0) {
         throw new Error("User not found");
     }
