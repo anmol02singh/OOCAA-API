@@ -77,7 +77,7 @@ Make sure MongoDB is running:
 systemctl status mongod
 ```
 
-### 5. Running the Server
+## Running the Server
 
 Start the dev server with:
 
@@ -98,7 +98,7 @@ Server Started
 Connected to Database
 ```
 
-### 6. Testing the API
+## Testing the API
 
 Use any of the following to test API endpoints:
 
