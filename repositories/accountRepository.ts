@@ -2,6 +2,7 @@ import Account, { AccountType } from '../models/account';
 import bcrypt from "bcryptjs";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import cloudinary from '../config/cloudinary';
+import { Document, Types } from 'mongoose';
 
 //Placeholder profile picture.
 const placeholderProfileImage = {
@@ -397,3 +398,67 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         throw new Error("Error updating account in database.");
     }
 };
+export const changePassword = async (
+    username: string,
+    currentPassword: string,
+    newPassword: string,
+    
+): Promise<boolean> => {
+    const account = await Account.findOne({ username }).exec();
+    if (!account) throw new Error("User not found");
+    
+    // Verify current password
+    if (!bcrypt.compareSync(currentPassword, account.passwordHash)) {
+        throw new Error("Invalid current password");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const newHash = bcrypt.hashSync(newPassword, salt);
+
+    // Update password
+    const result = await Account.updateOne(
+        { _id: account._id },
+        { $set: { passwordHash: newHash } }
+    ).exec();
+
+    return result.modifiedCount === 1;
+};
+export const changeUsername = async (
+    currentUsername: string,
+    newUsername: string
+): Promise<boolean> => {
+    // Validate username requirements
+    if (newUsername.length < 4) {
+        throw new Error("Username must be at least 4 characters");
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
+        throw new Error("Username can only contain letters, numbers, and underscores");
+    }
+
+    if (newUsername === currentUsername) {
+        throw new Error("New username cannot be the same as current username");
+    }
+
+    // Check if username is available
+    const existingAccount = await Account.findOne({ username: newUsername }).exec();
+    if (existingAccount) {
+        throw new Error("Username already taken");
+    }
+
+    // Update username
+    const result = await Account.updateOne(
+        { username: currentUsername },
+        { $set: { username: newUsername } }
+    ).exec();
+    const updatedUser = await Account.findOne({ username: newUsername }).exec();
+    if (result.matchedCount === 0) {
+        throw new Error("User not found");
+    }
+
+    return result.modifiedCount === 1;
+};
+
+function generateNewToken(updatedUser: (Document<unknown, {}, { username: string; passwordHash: string; email: string; role: string; name?: string | null | undefined; phoneNumber?: string | null | undefined; profileImage?: { publicId?: string | null | undefined; url?: string | null | undefined; } | null | undefined; }> & { username: string; passwordHash: string; email: string; role: string; name?: string | null | undefined; phoneNumber?: string | null | undefined; profileImage?: { publicId?: string | null | undefined; url?: string | null | undefined; } | null | undefined; } & { _id: Types.ObjectId; } & { __v: number; }) | null) {
+    throw new Error('Function not implemented.');
+}
