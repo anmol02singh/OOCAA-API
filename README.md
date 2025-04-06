@@ -54,12 +54,12 @@ CLOUDINARY_KEY=your_cloudinary_api_key
 CLOUDINARY_SECRET_KEY=your_cloudinary_secret
 ```
 
-Generating a JWT Secret
+#### Generating a JWT Secret
 ```
 openssl rand -hex 32
 ```
 
-Cloudinary Notes
+#### Cloudinary Notes
 
 Images are stored via uploading to a "cloud" or server space with the [cloudinary](https://cloudinary.com/) service and saving associated URLs in OOCAA's database. The above 4 Cloudinary values help access the cloud and the specific path for storing images.
 
