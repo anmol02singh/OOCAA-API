@@ -1,76 +1,106 @@
 # OOCAA-API
-## Preface
-***I am on a windows laptop btw***
 
-If u guys also have a windows computer I recommend u guys install WSL (Windows Subsystem for Linux) (i'm not sure about mac lol sorry). It's just easier to set up github via linux terminal and down the line you can commit changes right from the terminal. It also works cohesively with vscode and u just face less issues compared to working in windows command prompt or powershell.
+A Node.js backend for the OOCAA (Online Orbital Collision Alert and Analysis) platform, designed to fetch, process, and serve conjunction data messages (CDMs) for satellite collision monitoring and visualization.
 
-## Setup
-make sure u guys have git and node installed on your local, if not you can do this via the linux terminal (or any terminal if u have mac or don't wanna use wsl). 
+## Prerequisites
 
-also make sure u have mongodb installed, and that the service mongod is up and active.
+Before running the project locally, ensure the following are installed:
 
-Clone this repo either via https or ssh (i recommend via ssh but u have to set up an ssh key on your github account before you clone or else it might say permission denied).
+- [Node.js](https://nodejs.org/)
+- [MongoDB](https://www.mongodb.com/)
+- [Git](https://git-scm.com/)
 
-after you cloned it successfully, navigate to the project directory and run npm install (make sure u have node installed) this will install all the packages listed in package.json
+> **Windows Users**  
+> It's highly recommended to use [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/) with a terminal like Ubuntu. It works seamlessly with VSCode and avoids many common issues with PowerShell or Command Prompt.
 
-after all dependencies are installed, create your own .env file.
+---
 
-### .env File
-Add the database URL in it which (for the mean time) should be this:
+## Installation & Setup
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/your-username/oocaa-api.git
+# OR
+git clone git@github.com:your-username/oocaa-api.git
 ```
+> **SSH Recommended**  
+> If you use SSH, make sure you’ve set up your [SSH keys](https://docs.github.com/en/authentication/connecting-to-github-with-ssh) on GitHub beforehand.
+
+### 2. Install Dependencies
+
+```cd oocaa-api
+npm install
+```
+
+### 3. Configure Environment Variables
+
+Create a .env file in the root directory with the following content:
+
+```
+# MongoDB
 DATABASE_URL=mongodb://localhost/cdm-data
-```
-if your default port isn't 3000 you can also define the port number in here by putting this in the .env:
-```
+
+# App Port
 PORT=3000
+
+# JWT Authentication
+JWT_SECRET_KEY=your_generated_jwt_secret
+
+# Cloudinary (for profile images)
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_PARENT_FOLDER=OOCAA/profileImages
+CLOUDINARY_KEY=your_cloudinary_api_key
+CLOUDINARY_SECRET_KEY=your_cloudinary_secret
 ```
 
-<br/>
-
-For the JWT account tokens to work, generate a token with the command:
+Generating a JWT Secret
 ```
 openssl rand -hex 32
 ```
-and add the following line to your .env:
-```
-JWT_SECRET_KEY=[the token you generated here]
-```
 
-<br/>
+Cloudinary Notes
 
-For the profile image system to work, add the following:
-```
-CLOUDINARY_CLOUD_NAME=dzdbnoch9
-CLOUDINARY_PARENT_FOLDER=OOCAA/profileImages
-CLOUDINARY_KEY=437337699859197
-CLOUDINARY_SECRET_KEY=bK3iYpyTp-ybuqYB3Fpm7K9X-d8
-```
-Images are stored via uploading to a "cloud" or server space with the [cloudinary](https://cloudinary.com/) service and saving associated URLs in OOCAA's database. The above 4 values help access the cloud and the specific path for storing images.
+Images are stored via uploading to a "cloud" or server space with the [cloudinary](https://cloudinary.com/) service and saving associated URLs in OOCAA's database. The above 4 Cloudinary values help access the cloud and the specific path for storing images.
 
 If you want to use your own account for testing, make your own [cloudinary](https://cloudinary.com/) account for free and then follow the below steps.
-* Change the **CLOUDINARY_CLOUD_NAME**, **CLOUDINARY_KEY**, and **CLOUDINARY_SECRET_KEY** values to those listed under **Programmable Media > Dashboard** and **Dashboard > Go to API Keys** in your account.
-* Ideally **keep CLOUDINARY_PARENT_FOLDER as OOCAA/profileImages** to maintain the same file structure.
+* Change the `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_KEY`, and `CLOUDINARY_SECRET_KEY` values to those listed under **Programmable Media > Dashboard** and **Dashboard > Go to API Keys** in your account.
+* Ideally keep `CLOUDINARY_PARENT_FOLDER` as `OOCAA/profileImages` to maintain the same file structure.
 * You can set up and view the folder structure described by CLOUDINARY_PARENT_FOLDER and any uploaded files under **Assets > Folders**.
 * Place the [default profile image](https://res.cloudinary.com/dzdbnoch9/image/upload/v1741495294/placeholderProfileImage_wsa3w8.png) directly in the profileImages folder following the CLOUDINARY_PARENT_FOLDER structure.
 
-<br/>
+### 4. Run MongoDB
 
-The final .env file should look something like this:
+Make sure MongoDB is running:
+
 ```
-DATABASE_URL=mongodb://localhost/cdm-data
-PORT=3000
-JWT_SECRET_KEY=d304064c40744e847bfdf063ee3f21ba621e1527eb3d7aa32bdb5c87e45c0d81
-CLOUDINARY_CLOUD_NAME=dzdbnoch9
-CLOUDINARY_PARENT_FOLDER=OOCAA/profileImages
-CLOUDINARY_KEY=437337699859197
-CLOUDINARY_SECRET_KEY=bK3iYpyTp-ybuqYB3Fpm7K9X-d8
+systemctl status mongod
 ```
 
-## Startup
-when u did npm install, nodemon should've been installed. nodemon is helpful when starting the server cuz it'll restart everytime u make a change. start the server by running: npm run devStart. if this doesn't work, run: node server.js
+### 5. Running the Server
 
-if successful, you should see in the terminal: 
+Start the dev server with:
+
+```
+npm run devStart
+```
+
+Or fall back to:
+
+```
+node server.js
+```
+
+If successful, you should see:
+
+```
 Server Started
 Connected to Database
+```
 
-everything should be working, you can test the endpoints via postman or curl
+### 6. Testing the API
+
+Use any of the following to test API endpoints:
+
+* [Postman](https://www.postman.com/)
+* `curl`
