@@ -1,11 +1,14 @@
 import express from 'express';
 import { getAllCDMData, getCDMDataById, saveCDMData, getCDMsByEvent } from '../controllers/cdmController';
-import { searchEvents } from '../controllers/searchController';
+import { searchEvents, getAllEvents } from '../controllers/searchController';
 import { fetchTLEs } from '../controllers/tleController';
 import { subscribeToEvent, fetchUserWatchlist, deleteEvent } from '../controllers/watchlistController';
 
 const router = express.Router();
 
+router.get('/getAllEvents', (req, res) => {
+    getAllEvents(req, res);
+  });
 router.get('/', getAllCDMData);
 router.get('/:id', getCDMDataById);
 router.post('/sync-cdms', saveCDMData);

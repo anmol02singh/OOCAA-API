@@ -1,6 +1,20 @@
 import { Request, Response } from 'express';
-import { getEvents } from '../services/searchService';
+import { getEvents, fetchAllEvents } from '../services/searchService';
 import { SearchParams, TcaRange } from '../config/types';
+
+export async function getAllEvents(req: Request, res: Response): Promise<void> {
+  try {
+    const events = await fetchAllEvents();
+    if (!events || events.length === 0) {
+      res.status(404).json({ message: 'No events found' });
+      return;
+    }
+    res.status(200).json(events);
+  } catch (error) {
+    console.error("Error in controller (getAllEvents):", error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
 
 export const searchEvents = async (req: Request, res: Response): Promise<void> => {
   const searchParams: SearchParams[] = req.body.searchParams;
