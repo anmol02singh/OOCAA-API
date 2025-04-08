@@ -12,10 +12,6 @@ export const searchEvents = async (req: Request, res: Response): Promise<void> =
   const collisionProbabilityOperator = req.body.collisionProbabilityOperator;
   const operatorOrganization = req.body.operatorOrganization;
 
-  if (!searchParams[0].value || searchParams.length === 0) {
-    res.status(400).json({ message: 'Search parameters are required' });
-    return;
-  }
   if (!tcaRange || tcaRange.length !== 2) {
     res.status(400).json({ message: 'TCA range is required' });
     return;

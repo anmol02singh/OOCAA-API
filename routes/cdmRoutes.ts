@@ -14,7 +14,7 @@ router.post('/fetchTLEs', fetchTLEs);
 router.get('/by-event/:eventId', getCDMsByEvent);
 router.delete('/delete-event/:eventId', deleteEvent);
 router.post('/subscribe', subscribeToEvent);
-//change to subsrcibe to object
+//change to subsrcibe to criteria
 router.get('/watchlist/:userId', fetchUserWatchlist);
 
 export default router;

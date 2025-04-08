@@ -75,7 +75,11 @@ export const getEvents = async (
         operator = { $gte: extraFilters.collisionProbabilityValue };
         break;
       case 'eq':
-        operator = { $eq: extraFilters.collisionProbabilityValue };
+        const tolerance = extraFilters.collisionProbabilityValue * 0.05;
+        operator = { 
+          $gte: extraFilters.collisionProbabilityValue - tolerance, 
+          $lte: extraFilters.collisionProbabilityValue + tolerance 
+        };
         break;
     }
     additionalFilters.push({ 
