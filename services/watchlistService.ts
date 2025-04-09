@@ -1,8 +1,23 @@
-import { addWatchlistEntry, getWatchlistByUser, repoDeleteEvent } from "../repositories/watchlistRepository";
+import { addWatchlistEntry, getWatchlistByUser, repoDeleteEvent, findDuplicateWatchlistEntry } from "../repositories/watchlistRepository";
 
-async function addToWatchlist (userId: string, eventId: string) {
+interface WatchlistEntry {
+    user: string;
+    searchParams: any[];
+    tcaRange: [number, number];
+    missDistanceValue?: number;
+    missDistanceOperator?: 'lte' | 'gte' | 'eq';
+    collisionProbabilityValue?: number;
+    collisionProbabilityOperator?: 'lte' | 'gte' | 'eq';
+    operatorOrganization?: string;
+}
+
+async function addToWatchlist (data: WatchlistEntry) {
     try {
-        return await addWatchlistEntry(userId, eventId);
+        const existingEntry = await findDuplicateWatchlistEntry(data);
+        if (existingEntry) {
+            throw new Error('Duplicate subscription: User has already subscribed to these exact criteria'); 
+        }
+        return await addWatchlistEntry(data);
     } catch (error) {
         console.error('Error in service (addToWatchlist):', error);
         throw error;

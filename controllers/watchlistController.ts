@@ -1,15 +1,42 @@
 import { addToWatchlist, getwatchlist, serviceDeleteEvent } from "../services/watchlistService";
 import { Request, Response } from 'express';
 
-export const subscribeToEvent = async (req: Request, res: Response): Promise<void> => {
+export const subscribeToCriteria = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { userId, eventId } = req.body;
-        if (!userId || !eventId) {
-            res.status(400).json({ message: 'Missing required parameters: userId and eventId' });
+        const { 
+            userId,
+            searchParams,
+            tcaRange,
+            missDistanceValue,
+            missDistanceOperator,
+            collisionProbabilityValue,
+            collisionProbabilityOperator,
+            operatorOrganization,
+         } = req.body;
+        if (!userId || !tcaRange) {
+            res.status(400).json({ message: 'Missing required parameters: userId and tcaRange' });
             return;
         }
-        const data = await addToWatchlist(userId, eventId);
-        res.status(200).json(data);
+        
+        try {
+            const data = await addToWatchlist({ 
+                user: userId, 
+                searchParams,
+                tcaRange,
+                missDistanceValue,
+                missDistanceOperator,
+                collisionProbabilityValue,
+                collisionProbabilityOperator,
+                operatorOrganization,
+            });
+            res.status(200).json(data);
+        } catch (error) {
+            if (error instanceof Error && error.message.includes('Duplicate subscription')) {
+                res.status(409).json({ message: error.message });
+            } else {
+                throw error;
+            }
+        }
     } catch (error) {
         console.error('Error in controller (subscribeToEvent):', error);
         res.status(500).json({ message: 'Error subscribing to event' });
