@@ -191,6 +191,64 @@ export async function repairProfileImageSource(username: string): Promise<boolea
     return true;
 }
 
+//Deletes all cloudinary folders with no corresponding account.
+let cleanRunning = false;
+export async function cleanCloudinary(): Promise<boolean> {
+    if (cleanRunning) return false;
+
+    cleanRunning = true;
+
+    try {
+        const parentFolder = `${process.env.CLOUDINARY_PARENT_FOLDER}`;
+
+        try {
+            const folders = (await cloudinary.api.sub_folders(parentFolder))?.folders;
+            if (!folders) return false;
+
+            const accounts = await Account.find({}).exec();
+            if (!accounts) return false;
+
+            let loneFolder = true;
+            for (const folder of folders) {
+                if (!folder) continue;
+
+                loneFolder = true;
+                for (const account of accounts) {
+                    if (!account) continue;
+
+                    if (`${folder.name}` === `${account._id}`) {
+                        loneFolder = false;
+                        break;
+                    }
+                }
+
+                if (loneFolder) {
+                    await cloudinary.api.delete_resources_by_prefix(`${folder.path}`);
+                    await cloudinary.api.delete_folder(`${folder.path}`);
+                }
+            };
+            //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if (error.http_code === 420) {
+                console.error("Error checking folder:", error);
+                return false;
+            } else if (error.http_code === 404) {
+                console.error("Error checking folder:", error);
+                return false;
+            } else {
+                console.error("Error checking folder:", error);
+                throw error;
+            }
+        }
+    } catch (err) {
+        console.error('Error executing cloudinary unmatched folder cleanup:', err);
+        return false;
+    } finally {
+        cleanRunning = false;
+    }
+    return true;
+}
+
 export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
 
@@ -220,11 +278,11 @@ export async function getAccounts(
             role,
             email: { $regex: email, $options: "i" },
             phoneNumber: phoneNumber === "" ? phoneNumber : { $regex: phoneNumber, $options: "i" },
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).filter(([key, value]) =>
             !(value === undefined
-            || ((typeof value !== 'number' && typeof value !== 'string')
-                && (value.$regex === undefined))))
+                || ((typeof value !== 'number' && typeof value !== 'string')
+                    && (value.$regex === undefined))))
     );
 
     const test = await Account.find(parameters).exec();
@@ -285,13 +343,13 @@ export async function updateAccountsRole(
     if (!accounts) return false;
 
     //Cancel update if all the current role of all the accounts is the same as the new role.
-    if(accounts.filter(account => account.role !== role).length <= 0) return true;
+    if (accounts.filter(account => account.role !== role).length <= 0) return true;
 
     //Ids of user objects to update.
     const ids = accounts.map(account => account._id);
 
     //Update role in given accounts.
-    const result = await Account.updateMany({ _id: { $in: ids } }, {role: role}).exec()
+    const result = await Account.updateMany({ _id: { $in: ids } }, { role: role }).exec()
     if (result.matchedCount > 0 && result.modifiedCount > 0) {
         return true;
     } else {
@@ -306,6 +364,31 @@ export async function deleteAccounts(
     //User objects to delete.
     const accounts = await Account.find({ username: { $in: usernames } }).exec();
     if (!accounts) return false;
+
+    //For each account, remove cloudinary image and corresponding user folder.
+    let folder = '';
+    for (const account of accounts) {
+        if (!account) continue;
+
+        folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
+        try {
+            await cloudinary.api.delete_resources_by_prefix(folder);
+            await cloudinary.api.delete_folder(folder);
+            //eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            if ((error.http_code && error.http_code === 420)
+                || (error.error.http_code && error.error.http_code === 420
+                )) {
+                console.error("Error deleting folder:", error);
+                return false;
+            } else if ((error.http_code && error.http_code !== 404)
+                || (error.error.http_code && error.error.http_code !== 404
+                )) {
+                console.error("Error deleting folder:", error);
+                throw error;
+            }
+        }
+    }
 
     //Ids of user objects to delete.
     const ids = accounts.map(account => account._id);
