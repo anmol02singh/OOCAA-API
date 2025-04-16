@@ -265,28 +265,40 @@ export async function changePassword(req: Request, res: Response) {
 }
 export async function changeUsername(req: Request, res: Response) {
     const secret = process.env.JWT_SECRET_KEY;
-    const { token, newUsername } = req.body;
-    
+    const { token, newUsername } = req.body; 
+    if (!secret) {
+         console.error("JWT_SECRET_KEY is not set"); 
+         return res.status(500).json({ message: "Server configuration error" }); 
+    }
 
-        if (!secret) throw new Error("JWT_SECRET_KEY is not set");
-        
-        const decoded = jwt.verify(token, secret) as JwtPayload;
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+        console.error('Malformed token received on backend:', token);
+        return res.status(400).json({ success: false, message: "Malformed token received." });
+    }
+
+    try { 
+        const decoded = jwt.verify(token, secret) as JwtPayload; 
         const currentUsername = decoded.username;
 
-        const result = await serviceChangeUsername(currentUsername, newUsername);
-        
-        if (result.success) {
-            const newToken = newAccessToken(newUsername);
-            
-            res.status(200).json({
+        const result = await serviceChangeUsername(currentUsername, newUsername); 
+
+        if (result.success) { 
+            const newToken = newAccessToken(newUsername); 
+            res.status(200).json({  
                 success: true,
                 message: result.message,
                 token: newToken
             });
         } else {
-            res.status(400).json(result);
+            res.status(400).json(result); 
         }
-        
-   
+    } catch (error) {
+         if (error instanceof jwt.JsonWebTokenError) {
+            console.error("JWT Error:", error.message);
+            return res.status(401).json({ success: false, message: `Authentication Error: ${error.message}` });
+         }
+         console.error("Error during username change:", error);
+         return res.status(500).json({ success: false, message: "An internal server error occurred." });
+    }
 }
 

@@ -427,26 +427,6 @@ export const changeUsername = async (
     currentUsername: string,
     newUsername: string
 ): Promise<boolean> => {
-    // Validate username requirements
-    if (newUsername.length < 4) {
-        throw new Error("Username must be at least 4 characters");
-    }
-
-    if (!/^[a-zA-Z0-9_]+$/.test(newUsername)) {
-        throw new Error("Username can only contain letters, numbers, and underscores");
-    }
-
-    if (newUsername === currentUsername) {
-        throw new Error("New username cannot be the same as current username");
-    }
-
-    // Check if username is available
-    const existingAccount = await Account.findOne({ username: newUsername }).exec();
-    if (existingAccount) {
-        throw new Error("Username already taken");
-    }
-
-    // Update username
     const result = await Account.updateOne(
         { username: currentUsername },
         { $set: { username: newUsername } }
@@ -458,7 +438,12 @@ export const changeUsername = async (
 
     return result.modifiedCount === 1;
 };
-
-function generateNewToken(updatedUser: (Document<unknown, {}, { username: string; passwordHash: string; email: string; role: string; name?: string | null | undefined; phoneNumber?: string | null | undefined; profileImage?: { publicId?: string | null | undefined; url?: string | null | undefined; } | null | undefined; }> & { username: string; passwordHash: string; email: string; role: string; name?: string | null | undefined; phoneNumber?: string | null | undefined; profileImage?: { publicId?: string | null | undefined; url?: string | null | undefined; } | null | undefined; } & { _id: Types.ObjectId; } & { __v: number; }) | null) {
-    throw new Error('Function not implemented.');
+export async function findUserByUsername(username: string): Promise<(AccountType & Document) | null> {
+    try {
+        const account = await Account.findOne({ username: username }).exec();
+        return account;
+    } catch (error) {
+        console.error(`Error finding user by username:`, error);
+        throw new Error(`Database error while searching for username.`);
+    }
 }

@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Router, Request, Response } from 'express';
 import {
     register,
     login,
@@ -27,6 +27,13 @@ router.put('/updateProfileImage', updateProfileImage);
 router.delete('/removeProfileImage', removeProfileImage);
 router.delete('/repairProfileImageSource', repairProfileImageSource);
 router.post('/change-password', changePassword);
-router.post('/change-username', changeUsername);
+router.post('/change-username', (req: Request, res: Response) => {
+    changeUsername(req, res).catch(error => {
+        console.error("Unhandled error in /change-username route:", error);
+        if (!res.headersSent) {
+            res.status(500).json({ message: "Internal server error" });
+        }
+    });
+});
 
 export default router

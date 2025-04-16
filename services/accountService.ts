@@ -1,4 +1,3 @@
-// import { changePassword } from '../controllers/accountController';
 import {
     register as repoRegister,
     login as repoLogin,
@@ -11,7 +10,8 @@ import {
     removeProfileImage as repoRemoveProfileImage,
     repairProfileImageSource as repoRepairProfileImageSource,
     changePassword as repoChangePassword ,
-    changeUsername as repoChangeUsername
+    changeUsername as repoChangeUsername,
+    findUserByUsername as repoFindUserByUsername
 } from '../repositories/accountRepository';
 
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
@@ -104,40 +104,34 @@ export async function changePassword(
         };
     }
 }
-// In services/accountService.ts
 export async function changeUsername(
     currentUsername: string,
     newUsername: string
 ): Promise<{ success: boolean; message: string }> {
     try {
-        // Validate username requirements
-        if (!newUsername) {
-            return { success: false, message: "Username is required" };
-        }
-        if (newUsername.length < 4) {
-            return { success: false, message: "Username must be at least 4 characters" };
-        }
-        if (newUsername === currentUsername) {
-            return { success: false, message: "New username cannot be the same as current" };
-        }
+        if (!newUsername) { /* ... */ }
+        if (newUsername.length < 4) { /* ... */ }
+        if (newUsername === currentUsername) { /* ... */ }
+        if (!/^[a-zA-Z0-9_.]+$/.test(newUsername)) { /* ... */ }
+        if (/\.\./.test(newUsername)) { /* ... */ }
+        if (/^\.|\.$/.test(newUsername)) { /* ... */ }
 
-        // Check for valid characters (letters, numbers, underscores)
-        const usernameRegex = /^[a-zA-Z0-9_]+$/;
-        if (!usernameRegex.test(newUsername)) {
-            return { success: false, message: "Username can only contain letters, numbers, and underscores" };
+        const existingUser = await repoFindUserByUsername(newUsername); 
+        if (existingUser) {
+             return { success: false, message: `Username "${newUsername}" is already taken.` };
         }
-
-        // Call repository function
         const success = await repoChangeUsername(currentUsername, newUsername);
-        
+
         return {
             success,
-            message: success ? "Username updated successfully" : "Username change failed"
+            message: success ? "Username updated successfully" : "Failed to update username in database." 
         };
     } catch (error) {
+        console.error("Error in changeUsername service:", error);
+  
         return {
             success: false,
-            message: error instanceof Error ? error.message : "Username change failed"
+            message: error instanceof Error ? error.message : "Error occurred while changing username."
         };
     }
 }
