@@ -41,16 +41,16 @@ export const addWatchlistEntry = async (data: WatchlistEntry) => {
 
 export const getWatchlistByUser = async (userId: string) => {
     try {
-        return await watchlist.find({ user: userId }).populate('event');
+        return await watchlist.find({ user: userId });
     } catch (error) {
         console.error('Error in repository (getWatchlistByUser):', error);
         throw error;
     }
 };
 
-export const repoDeleteEvent = async (eventId: string) => {
+export const repoDeleteFilters = async (filterId: string) => {
     try {
-        return await watchlist.deleteOne({ event: eventId });
+        return await watchlist.deleteOne({ _id: filterId });
     } catch (error) {
         console.error('Error in repository (repoDeleteEvent):', error);
         throw error;

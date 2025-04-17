@@ -1,4 +1,4 @@
-import { addWatchlistEntry, getWatchlistByUser, repoDeleteEvent, findDuplicateWatchlistEntry } from "../repositories/watchlistRepository";
+import { addWatchlistEntry, getWatchlistByUser, repoDeleteFilters, findDuplicateWatchlistEntry } from "../repositories/watchlistRepository";
 
 interface WatchlistEntry {
     user: string;
@@ -33,9 +33,9 @@ async function getwatchlist (userId: string) {
     }
 };
 
-async function serviceDeleteEvent (eventId: string) {  
+async function serviceDeleteFilters (filterId: string) {  
     try {
-        return await repoDeleteEvent(eventId);
+        return await repoDeleteFilters(filterId);
     } catch (error) {
         console.error('Error in service (deleteEvent):', error);
         throw error;
@@ -45,5 +45,5 @@ async function serviceDeleteEvent (eventId: string) {
 export {
     addToWatchlist,
     getwatchlist,
-    serviceDeleteEvent,
+    serviceDeleteFilters,
 }
