@@ -104,7 +104,7 @@ export async function register(name: string, email: string, phone: string, usern
     //Create new account.
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
+    const account = new Account({ name: name, email: email.toLowerCase(), phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
     if (await account.save()) {
         return "";
     } else {
@@ -112,10 +112,18 @@ export async function register(name: string, email: string, phone: string, usern
     }
 };
 
-export async function login(username: string, password: string): Promise<boolean> {
-    const account = await Account.findOne({ username: username }).exec();
-    await repairProfileImageSource(username);
-    return account ? bcrypt.compareSync(password, account.passwordHash) : false;
+export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
+    let account = undefined;
+    if(usernameOrEmail.includes("@")){
+        account = await Account.findOne({ email: usernameOrEmail.toLowerCase() }).exec();
+    } else {
+        account = await Account.findOne({ username: usernameOrEmail }).exec();
+    }
+
+    if(!account) return {success: false, username: undefined};
+        
+    await repairProfileImageSource(account.username);
+    return {success: bcrypt.compareSync(password, account.passwordHash), username: account.username};
 };
 
 /*
@@ -282,14 +290,14 @@ export async function updateGeneralUserData(
     if (!account) return { success: false, message: "User account update cancelled: account with given username could not be found." };
 
     //Validate data.
-    const dataValidation = await validateUserData(account, newName, newEmail, newPhone);
+    const dataValidation = await validateUserData(account, newName, newEmail?.toLowerCase(), newPhone);
     if (!dataValidation.success) return dataValidation;
 
     //Updated user account object.
     const updatedAccount = {
         name: newName !== undefined ? newName : account.name,
         // username: newUsername ? newUsername : account.username,
-        email: newEmail ? newEmail : account.email,
+        email: newEmail ? newEmail.toLowerCase() : account.email,
         phoneNumber: newPhone !== undefined ? newPhone : account.phoneNumber,
     };
 
