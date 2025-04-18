@@ -3,7 +3,7 @@ import {
     register,
     login,
     userdata,
-    deleteAccount,
+    deleteOwnAccount,
     getAccounts,
     updateGeneralUserData,
     updateAccountsRole,
@@ -18,8 +18,8 @@ const router = express.Router();
 router.post('/register', register);
 router.post('/login', login);
 router.post('/userdata', userdata);
-// Deletes one account, without requiring authentication.  Only used for testing.
-router.post('/deleteAccount', deleteAccount);
+// Deletes the account with the provided token.  Only used for testing.
+router.delete('/deleteOwnAccount', deleteOwnAccount);
 router.post('/getAccounts', getAccounts);
 router.put('/updateGeneralUserData', updateGeneralUserData);
 router.put('/updateAccountsRole', updateAccountsRole);

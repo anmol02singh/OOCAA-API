@@ -127,9 +127,12 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	}
 }
 
-export async function deleteAccount(req: Request, res: Response) {
-	const { username } = req.body;
+export async function deleteOwnAccount(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token } = req.body;
 	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
 		const success = await serviceDelete(username);
 		res.status(200).json({ success: success });
 	} catch (error) {
