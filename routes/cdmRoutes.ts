@@ -1,5 +1,5 @@
 import express from 'express';
-import { getAllCDMData, getCDMDataById, saveCDMData, getCDMsByEvent } from '../controllers/cdmController';
+import { getAllCDMData, getCDMDataById, saveCDMData, getCDMsByEvent, getCounts } from '../controllers/cdmController';
 import { searchEvents, getAllEvents } from '../controllers/searchController';
 import { fetchTLEs } from '../controllers/tleController';
 import { subscribeToCriteria, fetchUserWatchlist, deleteFilters } from '../controllers/watchlistController';
@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/getAllEvents', (req, res) => {
     getAllEvents(req, res);
   });
+router.get('/getCounts', getCounts);
 router.get('/', getAllCDMData);
 router.get('/:id', getCDMDataById);
 router.post('/sync-cdms', saveCDMData);

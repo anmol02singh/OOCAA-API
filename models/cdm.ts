@@ -3,15 +3,44 @@ import objectSchema from './object';
 
 const cdmSchema = new mongoose.Schema({
     event: { type: mongoose.Schema.Types.ObjectId, ref: 'Event' },
-    ccsdsCdmVers: { type: String },
-    creationDate: { type: Date },
-    originator: { type: String },
-    messageId: { type: String },
-    tca: { type: Date }, 
-    missDistance: { type: Number }, 
-    collisionProbability: { type: Number },
+    constellation: String,
+    cdmId: String,
+    filename: String,
+    insertEpoch: Date,
+    ccsdsCdmVers: String,
+    creationDate: Date,
+    originator: String,
+    messageFor: String,
+    messageId: {type: String, required: true, unique: true},
+    commentEmergencyReportable: String,
+    tca: Date,
+    missDistance: Number,
+    missDistanceUnit: String,
+    relativeSpeed: Number,
+    relativeSpeedUnit: String,
+    relativePosition: {
+        r: Number,
+        t: Number,
+        n: Number,
+        rUnit: String,
+        tUnit: String,
+        nUnit: String
+    },
+    relativeVelocity: {
+        r: Number,
+        t: Number,
+        n: Number,
+        rUnit: String,
+        tUnit: String,
+        nUnit: String
+    },
+    commentScreeningOption: String,
+    collisionProbability: Number,
+    collisionProbabilityMethod: String,
+    commentEffectiveHBR: String,
     object1: { type: objectSchema },
-    object2: { type: objectSchema }
+    object2: { type: objectSchema },
+    gid: String
 });
 
 export default mongoose.model('CDM', cdmSchema);
