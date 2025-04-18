@@ -64,7 +64,7 @@ export const validateUserData = async (
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
     
     //Check Valid
-    if (email.match(isEmailFormat)) {
+    if (!email.match(isEmailFormat)) {
         return "Please enter a valid email.";
     }
 
