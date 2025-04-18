@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
 
-const satelliteSchema = new mongoose.Schema({
+const objectSchema = new mongoose.Schema({
     object: String,
     objectDesignator: String,
     catalogName: String,
+    objectName: String,
     internationalDesignator: String,
+    objectType: String,
+    operatorOrganization: String,
     ephemerisName: String,
     covarianceMethod: String,
     maneuverable: String,
@@ -46,4 +49,4 @@ const satelliteSchema = new mongoose.Schema({
     }
 });
 
-export default satelliteSchema;
+export default objectSchema;

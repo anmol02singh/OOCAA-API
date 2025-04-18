@@ -3,7 +3,10 @@ import {
     login as repoLogin,
     userdata as repoUserdata,
     deleteAccount as repoDelete,
+    getAccounts as repoGetAccounts,
     updateGeneralUserData as repoUpdateUserData,
+    updateAccountsRole as repoUpdateAccountsRole,
+    deleteAccounts as repoDeleteAccounts,
     updateProfileImage as repoUpdateProfileImage,
     removeProfileImage as repoRemoveProfileImage,
     repairProfileImageSource as repoRepairProfileImageSource,
@@ -25,6 +28,22 @@ export async function deleteAccount(username: string): Promise<boolean> {
     return await repoDelete(username);
 };
 
+export async function getAccounts(
+    name?: string,
+    username?: string,
+    role?: number,
+    email?: string,
+    phoneNumber?: string,
+): Promise<object>{
+    return await repoGetAccounts(
+        name,
+        username,
+        role,
+        email,
+        phoneNumber,
+    );
+}
+
 export async function updateGeneralUserData(
     currentUsername: string,
     newName?: string,
@@ -40,6 +59,14 @@ export async function updateGeneralUserData(
         newPhone
     );
 };
+
+export async function updateAccountsRole(usernames: string, role: number): Promise<boolean> {
+    return await repoUpdateAccountsRole(usernames, role);
+}
+
+export async function deleteAccounts(usernames: string): Promise<boolean> {
+    return await repoDeleteAccounts(usernames);
+}
 
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
     return await repoUpdateProfileImage(currentUsername, newImage);

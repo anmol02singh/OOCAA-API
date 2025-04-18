@@ -75,7 +75,7 @@ export async function register(name: string, email: string, phone: string, usern
 
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: "user" });
+    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
     if (await account.save()) {
         return "";
     } else {
@@ -95,14 +95,14 @@ export async function login(username: string, password: string): Promise<boolean
 */
 let repairRunning = false; //to deal with race conditions.
 export async function repairProfileImageSource(username: string): Promise<boolean> {
-    if(repairRunning) return false;
+    if (repairRunning) return false;
 
     repairRunning = true;
 
     try {
         const account = await Account.findOne({ username: username }).exec();
-        if(!account) return false;
-        
+        if (!account) return false;
+
         const folder = `${process.env.CLOUDINARY_PARENT_FOLDER}/${account._id}`;
 
         //Remove image and corresponding user folder if profileImage field is missing.
@@ -111,15 +111,15 @@ export async function repairProfileImageSource(username: string): Promise<boolea
                 await cloudinary.api.delete_resources_by_prefix(folder);
                 await cloudinary.api.delete_folder(folder);
                 //eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } catch (error: any) {            
+            } catch (error: any) {
                 if ((error.http_code && error.http_code === 420)
                     || (error.error.http_code && error.error.http_code === 420
-                )) {
+                    )) {
                     console.error("Error deleting folder:", error);
                     return false;
                 } else if ((error.http_code && error.http_code !== 404)
                     || (error.error.http_code && error.error.http_code !== 404
-                )) {
+                    )) {
                     console.error("Error deleting folder:", error);
                     throw error;
                 }
@@ -163,7 +163,7 @@ export async function repairProfileImageSource(username: string): Promise<boolea
                 try {
                     await cloudinary.api.delete_folder(folder);
                     //eslint-disable-next-line @typescript-eslint/no-explicit-any
-                } catch (error: any) {                
+                } catch (error: any) {
                     if (error.error.http_code === 420) {
                         console.error("Error deleting folder:", error);
                         return false;
@@ -193,8 +193,9 @@ export async function repairProfileImageSource(username: string): Promise<boolea
 
 export async function userdata(username: string): Promise<object> {
     const account = await Account.findOne({ username: username }).exec();
-    
+
     return account ? {
+        _id: account._id,
         name: account.name,
         username: username,
         role: account.role,
@@ -203,6 +204,31 @@ export async function userdata(username: string): Promise<object> {
         profileImage: account.profileImage ?
             account.profileImage : placeholderProfileImage,
     } : {};
+}
+
+export async function getAccounts(
+    name?: string,
+    username?: string,
+    role?: number,
+    email?: string,
+    phoneNumber?: string,
+): Promise<object> {
+    const parameters = Object.fromEntries(
+        Object.entries({
+            name: name === "" ? name : { $regex: name, $options: "i" },
+            username: { $regex: username, $options: "i" },
+            role,
+            email: { $regex: email, $options: "i" },
+            phoneNumber: phoneNumber === "" ? phoneNumber : { $regex: phoneNumber, $options: "i" },
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        }).filter(([key, value]) =>
+            !(value === undefined
+            || ((typeof value !== 'number' && typeof value !== 'string')
+                && (value.$regex === undefined))))
+    );
+
+    const test = await Account.find(parameters).exec();
+    return test;
 }
 
 export async function updateGeneralUserData(
@@ -214,7 +240,11 @@ export async function updateGeneralUserData(
 ): Promise<{ success: boolean; message: string }> {
 
     //Check if at least 1 piece of new data was given and cancel data updating if not.
-    if (!newName /*&& !newUsername*/ && !newEmail && !newPhone) {
+    if (newName === undefined
+        //&& !newUsername
+        && !newEmail
+        && newPhone === undefined
+    ) {
         return { success: false, message: "User account update cancelled: no new data was given." };
     }
 
@@ -228,10 +258,10 @@ export async function updateGeneralUserData(
 
     //Updated user account object.
     const updatedAccount = {
-        name: newName ? newName : account.name,
+        name: newName !== undefined ? newName : account.name,
         // username: newUsername ? newUsername : account.username,
         email: newEmail ? newEmail : account.email,
-        phoneNumber: newPhone ? newPhone : account.phoneNumber,
+        phoneNumber: newPhone !== undefined ? newPhone : account.phoneNumber,
     };
 
     const result = await Account.updateOne({ _id: account._id }, updatedAccount).exec()
@@ -247,6 +277,53 @@ export async function deleteAccount(username: string): Promise<boolean> {
     return result.deletedCount > 0;
 }
 
+export async function updateAccountsRole(
+    usernames: string,
+    role: number,
+): Promise<boolean> {
+
+    //Make sure role is between 0 and 2.
+    if (role < 0 || role > 2) return false;
+
+    //User objects to update.
+    const accounts = await Account.find({ username: { $in: usernames } }).exec();
+    if (!accounts) return false;
+
+    //Cancel update if all the current role of all the accounts is the same as the new role.
+    if(accounts.filter(account => account.role !== role).length <= 0) return true;
+
+    //Ids of user objects to update.
+    const ids = accounts.map(account => account._id);
+
+    //Update role in given accounts.
+    const result = await Account.updateMany({ _id: { $in: ids } }, {role: role}).exec()
+    if (result.matchedCount > 0 && result.modifiedCount > 0) {
+        return true;
+    } else {
+        throw new Error("Error updating account in database.");
+    }
+};
+
+export async function deleteAccounts(
+    usernames: string,
+): Promise<boolean> {
+
+    //User objects to delete.
+    const accounts = await Account.find({ username: { $in: usernames } }).exec();
+    if (!accounts) return false;
+
+    //Ids of user objects to delete.
+    const ids = accounts.map(account => account._id);
+
+    //Delete account object.
+    const result = await Account.deleteMany({ _id: { $in: ids } }).exec()
+    if (result.deletedCount > 0) {
+        return true;
+    } else {
+        throw new Error("Error deleting account in database.");
+    }
+};
+
 export async function updateProfileImage(currentUsername: string, newImage: string): Promise<boolean> {
 
     //User object to update.
@@ -258,7 +335,7 @@ export async function updateProfileImage(currentUsername: string, newImage: stri
     try {
         await cloudinary.api.delete_resources_by_prefix(folder);
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {        
+    } catch (error: any) {
         if (error.http_code === 420) {
             console.error("Error deleting folder:", error);
             return false;
@@ -301,15 +378,15 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         await cloudinary.api.delete_resources_by_prefix(folder);
         await cloudinary.api.delete_folder(folder);
         //eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } catch (error: any) {        
+    } catch (error: any) {
         if ((error.http_code && error.http_code === 420)
             || (error.error.http_code && error.error.http_code === 420
-        )) {
+            )) {
             console.error("Error deleting folder:", error);
             return false;
         } else if ((error.http_code && error.http_code !== 404)
             || (error.error.http_code && error.error.http_code !== 404
-        )) {
+            )) {
             console.error("Error deleting folder:", error);
             throw error;
         }
