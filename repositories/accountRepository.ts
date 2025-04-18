@@ -26,7 +26,6 @@ const isValidPhoneNumber = (number: string): boolean => {
 export const validateUserData = async (
     account: AccountType,
     newName?: string,
-    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{ success: boolean; message: string }> => {
@@ -39,7 +38,7 @@ export const validateUserData = async (
         return { success: false, message: "Please enter a new email." };
     }
     if (newEmail && !newEmail.match(isEmailFormat)) {
-        return { success: false, message: "Please enter a vailid email." };
+        return { success: false, message: "Please enter a valid email." };
     }
 
     if (newPhone && newPhone === account.phoneNumber) {
@@ -63,16 +62,46 @@ export const validateUserData = async (
 
 // if an error happens, returns a string containing that error, else returns ""
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
-    if (await Account.findOne({ username: username }).exec()) {
-        return "This username is taken.";
+    
+    //Check Valid
+    if (email.match(isEmailFormat)) {
+        return "Please enter a valid email.";
     }
+
+    if (phone && !isValidPhoneNumber(phone)) {
+        return "Please enter a valid phone number.";
+    }
+
+    if (username.length < 4) {
+        return "Username must contain at least 4 characters.";
+    }
+
+    if (!username.match(/^[a-zA-Z0-9_.]+$/)) {
+        return "Username can only contain letters, numbers, underscores, and periods.";
+    }
+
+    if (password.length < 8) {
+        return "Password must contain at least 8 characters.";
+    }
+
+    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)) {
+        return "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character.";
+    }
+
+    //Check Unique    
     if (await Account.findOne({ email: email }).exec()) {
         return "This email is taken.";
     }
+
     if (phone && await Account.findOne({ phoneNumber: phone }).exec()) {
         return "This phone number is taken.";
     }
 
+    if (await Account.findOne({ username: username }).exec()) {
+        return "This username is taken.";
+    }
+
+    //Create new account.
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(password, salt);
     const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
