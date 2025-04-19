@@ -418,7 +418,8 @@ async function saveCDMDataToDB(folderId: string) {
                     } else {
                         console.warn('Skipping file due to missing required fields:', {
                             object1: newData.object1,
-                            object2: newData.object2
+                            object2: newData.object2,
+                            tca: newData.tca,
                         });
                     }
                     return newData;
