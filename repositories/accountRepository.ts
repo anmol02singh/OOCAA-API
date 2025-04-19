@@ -122,11 +122,12 @@ export async function register(name: string, email: string, phone: string, usern
 };
 
 export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
-    let processedUsernameOrEmail = usernameOrEmail.toLowerCase().trim();
+    let processedUsernameOrEmail = usernameOrEmail;
     const processedPassword = password.replace(" ", "");
     
     let account = undefined;
     if(usernameOrEmail.includes("@")){
+        processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase().trim();
         account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
     } else {
         processedUsernameOrEmail = processedUsernameOrEmail.replace(" ", "");
