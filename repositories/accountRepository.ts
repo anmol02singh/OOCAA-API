@@ -69,8 +69,8 @@ export async function register(name: string, email: string, phone: string, usern
     
     const processedName = name.replace(containsExtraSpaces, ' ').trim();
     const processedEmail = email.toLowerCase().trim();
-    const processedUsername = username.replace(" ", "");
-    const processedPassword = password.replace(" ", "");
+    const processedUsername = username.replace(containsExtraSpaces, "");
+    const processedPassword = password.replace(containsExtraSpaces, "");
 
     //Check Valid
     if (!processedEmail.match(isEmailFormat)) {
@@ -123,14 +123,14 @@ export async function register(name: string, email: string, phone: string, usern
 
 export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
     let processedUsernameOrEmail = usernameOrEmail;
-    const processedPassword = password.replace(" ", "");
+    const processedPassword = password.replace(containsExtraSpaces, "");
     
     let account = undefined;
     if(usernameOrEmail.includes("@")){
         processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase().trim();
         account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
     } else {
-        processedUsernameOrEmail = processedUsernameOrEmail.replace(" ", "");
+        processedUsernameOrEmail = processedUsernameOrEmail.replace(containsExtraSpaces, "");
         account = await Account.findOne({ username: processedUsernameOrEmail }).exec();
     }
 
