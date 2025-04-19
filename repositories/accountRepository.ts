@@ -11,6 +11,7 @@ const placeholderProfileImage = {
 
 //Regex for validation.
 //eslint-disable-next-line no-useless-escape
+const containsExtraSpaces = /\s+/g;
 const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const isUsernameFormat = /^[a-zA-Z0-9_.]+$/;
 const isPasswordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
@@ -66,8 +67,13 @@ export const validateUserData = async (
 // if an error happens, returns a string containing that error, else returns ""
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
     
+    const processedName = name.replace(containsExtraSpaces, ' ').trim();
+    const processedEmail = email.toLowerCase().trim();
+    const processedUsername = username.replace(" ", "");
+    const processedPassword = password.replace(" ", "");
+
     //Check Valid
-    if (!email.match(isEmailFormat)) {
+    if (!processedEmail.match(isEmailFormat)) {
         return "Please enter a valid email.";
     }
 
@@ -75,24 +81,24 @@ export async function register(name: string, email: string, phone: string, usern
         return "Please enter a valid phone number.";
     }
 
-    if (username.length < 4) {
+    if (processedUsername.length < 4) {
         return "Username must contain at least 4 characters.";
     }
 
-    if (!username.match(isUsernameFormat)) {
+    if (!processedUsername.match(isUsernameFormat)) {
         return "Username can only contain letters, numbers, underscores, and periods.";
     }
 
-    if (password.length < 8) {
+    if (processedPassword.length < 8) {
         return "Password must contain at least 8 characters.";
     }
 
-    if (!password.match(isPasswordFormat)) {
+    if (!processedPassword.match(isPasswordFormat)) {
         return "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character.";
     }
 
     //Check Unique    
-    if (await Account.findOne({ email: email }).exec()) {
+    if (await Account.findOne({ email: processedEmail }).exec()) {
         return "This email is already in use.";
     }
 
@@ -100,14 +106,14 @@ export async function register(name: string, email: string, phone: string, usern
         return "This phone number is already in use.";
     }
 
-    if (await Account.findOne({ username: username }).exec()) {
+    if (await Account.findOne({ username: processedUsername }).exec()) {
         return "This username is already in use.";
     }
 
     //Create new account.
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, email: email.toLowerCase(), phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
+    const hash = bcrypt.hashSync(processedPassword, salt);
+    const account = new Account({ name: processedName, email: processedEmail, phoneNumber: phone, username: processedUsername, passwordHash: hash, role: 1 });
     if (await account.save()) {
         return "";
     } else {
@@ -116,17 +122,21 @@ export async function register(name: string, email: string, phone: string, usern
 };
 
 export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
+    let processedUsernameOrEmail = usernameOrEmail.toLowerCase().trim();
+    const processedPassword = password.replace(" ", "");
+    
     let account = undefined;
     if(usernameOrEmail.includes("@")){
-        account = await Account.findOne({ email: usernameOrEmail.toLowerCase() }).exec();
+        account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
     } else {
-        account = await Account.findOne({ username: usernameOrEmail }).exec();
+        processedUsernameOrEmail = processedUsernameOrEmail.replace(" ", "");
+        account = await Account.findOne({ username: processedUsernameOrEmail }).exec();
     }
 
     if(!account) return {success: false, username: undefined};
         
     await repairProfileImageSource(account.username);
-    return {success: bcrypt.compareSync(password, account.passwordHash), username: account.username};
+    return {success: bcrypt.compareSync(processedPassword, account.passwordHash), username: account.username};
 };
 
 /*
@@ -274,14 +284,12 @@ export async function getAccounts(
 export async function updateGeneralUserData(
     currentUsername: string,
     newName?: string,
-    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{ success: boolean; message: string }> {
 
     //Check if at least 1 piece of new data was given and cancel data updating if not.
     if (newName === undefined
-        //&& !newUsername
         && !newEmail
         && newPhone === undefined
     ) {
@@ -292,15 +300,17 @@ export async function updateGeneralUserData(
     const account = await Account.findOne({ username: currentUsername }).exec();
     if (!account) return { success: false, message: "User account update cancelled: account with given username could not be found." };
 
+    const processedName = newName ? newName.replace(containsExtraSpaces, ' ').trim() : newName;
+    const processedEmail = newEmail ? newEmail.toLowerCase().trim() : newEmail;
+
     //Validate data.
-    const dataValidation = await validateUserData(account, newName, newEmail?.toLowerCase(), newPhone);
+    const dataValidation = await validateUserData(account, processedName, processedEmail, newPhone);
     if (!dataValidation.success) return dataValidation;
 
     //Updated user account object.
     const updatedAccount = {
-        name: newName !== undefined ? newName : account.name,
-        // username: newUsername ? newUsername : account.username,
-        email: newEmail ? newEmail.toLowerCase() : account.email,
+        name: processedName !== undefined ? processedName : account.name,
+        email: processedEmail ? processedEmail : account.email,
         phoneNumber: newPhone !== undefined ? newPhone : account.phoneNumber,
     };
 
