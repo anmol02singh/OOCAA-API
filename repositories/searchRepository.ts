@@ -8,13 +8,4 @@ export const findEvents = async (query: any) => {
     throw error;
   }
 };
-<<<<<<< HEAD
-// export const findCDMs = async (query: any) => {
-//     console.log('Executing query:', JSON.stringify(query, null, 2));
-//     const results = await CDM.find(query);
-//     console.log('Query results:', results);
-//     return results;
-//   };
-=======
->>>>>>> main
   

@@ -1,9 +1,6 @@
 import { SearchParams, TcaRange } from '../config/types'; 
 import { findEvents } from '../repositories/searchRepository';
 
-<<<<<<< HEAD
-export const getEvents = async (searchParams: SearchParams[], tcaRange: TcaRange) => {
-=======
 export const getEvents = async (
   searchParams: SearchParams[], 
   tcaRange: TcaRange,
@@ -15,35 +12,11 @@ export const getEvents = async (
     operatorOrganization?: string;
   }
 ) => {
->>>>>>> main
   const [tcaStart, tcaEnd] = tcaRange;
 
   const tcaStartDate = new Date(parseInt(tcaStart));
   const tcaEndDate = new Date(parseInt(tcaEnd));
 
-<<<<<<< HEAD
-  // const queries = searchParams.map(({ criteria, value }: SearchParams) => ({
-  //   $or: [
-  //     { [`object1.${criteria}`]: { $regex: value, $options: 'i' } },
-  //     { [`object2.${criteria}`]: { $regex: value, $options: 'i' } },
-  //   ],
-  // }));
-
-  // const queries = searchParams.map(({ criteria, value }: SearchParams) => {
-  //   console.log("criteria", criteria);  
-  //   if (criteria === 'objectDesignator') {
-  //     return {
-  //       $or: [
-  //         { primaryObjectDesignator: { $regex: value, $options: 'i' } },
-  //         { secondaryObjectDesignator: { $regex: value, $options: 'i' } },
-  //       ],
-  //     };
-  //   } else {
-  //     return { [criteria]: { $regex: value, $options: 'i' } };
-  //   }
-  // });
-=======
->>>>>>> main
   const queries = searchParams.map(({ criteria, value }: SearchParams) => {
     switch (criteria) {
       case 'objectDesignator':
@@ -70,9 +43,6 @@ export const getEvents = async (
       default:
         return { [criteria]: { $regex: value, $options: 'i' } };
     }
-<<<<<<< HEAD
-  });  
-=======
   });
 
   const additionalFilters = [];
@@ -121,16 +91,12 @@ export const getEvents = async (
       ],
     });
   }
->>>>>>> main
 
   const query = {
     $and: [
       ...queries,
       { tca: { $gte: tcaStartDate, $lte: tcaEndDate } },
-<<<<<<< HEAD
-=======
       ...additionalFilters,
->>>>>>> main
     ],
   };
 

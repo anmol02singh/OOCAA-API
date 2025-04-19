@@ -9,36 +9,22 @@ const auth = new google.auth.GoogleAuth({
 
 const drive = google.drive({ version: 'v3', auth});
 
-<<<<<<< HEAD
-async function listFilesRecursively(folderId: string): Promise<any[]> {
-    const allFiles: any[] = [];
-
-    async function fetchFiles(folderId: string, pageToken?: string) {
-=======
 async function listFilesRecursively(folderId: string, maxFiles = 37000): Promise<any[]> {
     const allFiles: any[] = [];
 
     async function fetchFiles(folderId: string, pageToken?: string) {
         if (allFiles.length >= maxFiles) return;
->>>>>>> main
         try {
             const response = await drive.files.list({
                 q: `'${folderId}' in parents`,
                 fields: 'nextPageToken, files(id, name, mimeType)',
-<<<<<<< HEAD
-                pageSize: 100,
-=======
                 pageSize: Math.min(100, maxFiles - allFiles.length),
->>>>>>> main
                 pageToken,
             });
 
             const files = response.data.files || [];
             for (const file of files) {
-<<<<<<< HEAD
-=======
                 if (allFiles.length >= maxFiles) return;
->>>>>>> main
                 if (file.id && file.mimeType === 'application/vnd.google-apps.folder') {
                     console.log(`Traversing folder: ${file.name}`);
                     await fetchFiles(file.id);
@@ -48,11 +34,7 @@ async function listFilesRecursively(folderId: string, maxFiles = 37000): Promise
                 }
             }
 
-<<<<<<< HEAD
-            if (response.data.nextPageToken) {
-=======
             if (response.data.nextPageToken && allFiles.length < maxFiles) {
->>>>>>> main
                 await fetchFiles(folderId, response.data.nextPageToken);
             }
         } catch (error) {
@@ -62,11 +44,7 @@ async function listFilesRecursively(folderId: string, maxFiles = 37000): Promise
     }
 
     await fetchFiles(folderId);
-<<<<<<< HEAD
-    return allFiles;
-=======
     return allFiles.slice(0, maxFiles);
->>>>>>> main
 }
 
 async function downloadFile(fileId: string, mimeType?: string): Promise<any> {
@@ -128,11 +106,7 @@ function parseDate(value: string): Date | null {
 
 async function saveCDMDataToDB(folderId: string) {
     try {
-<<<<<<< HEAD
-        const files = await listFilesRecursively(folderId);
-=======
         const files = await listFilesRecursively(folderId, 37000);
->>>>>>> main
         console.log(`Found ${files.length} files in the folder structure`);
 
         const batchSize = 1000; 
@@ -144,11 +118,7 @@ async function saveCDMDataToDB(folderId: string) {
                 batch.map(async (file) => {
                     const data = await downloadFile(file.id, file.mimeType);
                     const newData = {
-<<<<<<< HEAD
-                        event: null,
-=======
                         event: null as Types.ObjectId | null,
->>>>>>> main
                         ccsdsCdmVers: data.CCSDS_CDM_VERS,
                         creationDate: parseDate(data.CREATION_DATE),
                         originator: data.ORIGINATOR,
@@ -303,9 +273,5 @@ export {
     fetchAllCDMData,
     fetchCDMDataById,
     saveCDMDataToDB,
-<<<<<<< HEAD
-    fetchCDMsByEvent
-=======
     fetchCDMsByEvent,
->>>>>>> main
 };
