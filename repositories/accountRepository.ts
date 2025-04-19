@@ -122,15 +122,14 @@ export async function register(name: string, email: string, phone: string, usern
 };
 
 export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
-    let processedUsernameOrEmail = usernameOrEmail;
+    let processedUsernameOrEmail = usernameOrEmail.trim();
     const processedPassword = password.replace(containsExtraSpaces, "");
     
     let account = undefined;
     if(usernameOrEmail.includes("@")){
-        processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase().trim();
+        processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase();
         account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
     } else {
-        processedUsernameOrEmail = processedUsernameOrEmail.replace(containsExtraSpaces, "");
         account = await Account.findOne({ username: processedUsernameOrEmail }).exec();
     }
 
