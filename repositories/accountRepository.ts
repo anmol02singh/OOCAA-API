@@ -10,8 +10,8 @@ const placeholderProfileImage = {
 };
 
 //Regex for validation.
-//eslint-disable-next-line no-useless-escape
 const containsExtraSpaces = /\s+/g;
+//eslint-disable-next-line no-useless-escape
 const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const isUsernameFormat = /^[a-zA-Z0-9_.]+$/;
 const isPasswordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
