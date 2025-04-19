@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Router, Request, Response, NextFunction, request } from 'express';
+=======
+import { Request, Response, NextFunction } from 'express';
+>>>>>>> main
 import { fetchAllCDMData, fetchCDMDataById, saveCDMDataToDB, fetchCDMsByEvent } from '../services/cdmService';
 import mongoose from 'mongoose';
 

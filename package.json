@@ -4,7 +4,11 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
+<<<<<<< HEAD
     "devStart": "NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts"
+=======
+    "devStart": "cross-env NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts"
+>>>>>>> main
   },
   "keywords": [],
   "author": "",
@@ -12,10 +16,11 @@
   "dependencies": {
     "axios": "^1.7.9",
     "axios-cookiejar-support": "^5.0.5",
-    "bcryptjs": "^3.0.2",
     "body-parser": "^1.20.3",
     "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
+    "googleapis": "^144.0.0",
+    "bcryptjs": "^2.4.3",
     "express": "^4.21.1",
     "googleapis": "^144.0.0",
     "jsonwebtoken": "^9.0.2",

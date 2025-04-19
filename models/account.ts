@@ -6,7 +6,7 @@ const accountSchema = new mongoose.Schema({
     passwordHash: { type: String, required: true },
     email: { type: String, required: true },
     phoneNumber: { type: String, required: false },
-    role: { type: String, required: true },
+    role: { type: Number, required: true },
     profileImage: {
         type: {
             publicId: { type: String, required: false },
@@ -17,4 +17,4 @@ const accountSchema = new mongoose.Schema({
 });
 
 export default mongoose.model('Account', accountSchema);
-export type AccountType = InferSchemaType<typeof accountSchema> & { _id: mongoose.Types.ObjectId };
+export type AccountType = InferSchemaType<typeof accountSchema>;
