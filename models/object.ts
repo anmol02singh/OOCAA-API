@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const objectSchema = new mongoose.Schema({
+    comment: String,
     object: String,
     objectDesignator: String,
     catalogName: String,
@@ -43,6 +44,9 @@ const objectSchema = new mongoose.Schema({
     weightedRms: Number,
     areaPC: Number,
     areaPCUnit: String,
+    areaDRG: Number,
+    areaSRP: Number,
+    mass: Number,
     cdAreaOverMass: Number,
     cdAreaOverMassUnit: String,
     crAreaOverMass: Number,
@@ -52,6 +56,7 @@ const objectSchema = new mongoose.Schema({
     sedr: Number,
     sedrUnit: String,
     position: {
+        comment: String,
         x: Number,
         y: Number,
         z: Number
@@ -65,6 +70,7 @@ const objectSchema = new mongoose.Schema({
     commentDcpSensitivityVectorPosition: String,
     commentDcpSensitivityVectorVelocity: String,
     positionCovariance: {
+        comment: String,
         cr_r: Number,
         ct_r: Number,
         ct_t: Number,
@@ -107,6 +113,17 @@ const objectSchema = new mongoose.Schema({
         csrp_ndot: Number,
         csrp_drg: Number,
         csrp_srp: Number
+    },
+    thrCovariance: {
+        cthr_r: Number,
+        cthr_t: Number,
+        cthr_n: Number,
+        cthr_rdot: Number,
+        cthr_tdot: Number,
+        cthr_ndot: Number,
+        cthr_drg: Number,
+        cthr_srp: Number,
+        cthr_thr: Number
     }
 });
 

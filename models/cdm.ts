@@ -8,6 +8,7 @@ const cdmSchema = new mongoose.Schema({
     filename: String,
     insertEpoch: Date,
     ccsdsCdmVers: String,
+    comment: String,
     creationDate: Date,
     originator: String,
     messageFor: String,
@@ -34,6 +35,17 @@ const cdmSchema = new mongoose.Schema({
         tUnit: String,
         nUnit: String
     },
+    startScreenPeriod: Date,
+    stopScreenPeriod: Date,
+    screenVolumeFrame: String,
+    screenVolumeShape: String,
+    screenVolume: {
+        x: Number,
+        y: Number,
+        z: Number
+    },
+    screenEntryTime: Date,
+    screenExitTime: Date,
     commentScreeningOption: String,
     collisionProbability: Number,
     collisionProbabilityMethod: String,

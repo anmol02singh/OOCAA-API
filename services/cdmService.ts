@@ -122,6 +122,7 @@ async function saveCDMDataToDB(folderId: string) {
                         filename: data.FILENAME,
                         insertEpoch: parseDate(data.INSERT_EPOCH),
                         ccsdsCdmVers: data.CCSDS_CDM_VERS,
+                        comment: data.COMMENT,
                         creationDate: parseDate(data.CREATION_DATE),
                         originator: data.ORIGINATOR,
                         messageFor: data.MESSAGE_FOR,
@@ -148,12 +149,24 @@ async function saveCDMDataToDB(folderId: string) {
                             tUnit: data.RELATIVE_VELOCITY_T_UNIT,
                             nUnit: data.RELATIVE_VELOCITY_N_UNIT
                         },
+                        startScreenPeriod: parseDate(data.START_SCREEN_PERIOD),
+                        stopScreenPeriod: parseDate(data.STOP_SCREEN_PERIOD),
+                        screenVolumeFrame: data.SCREEN_VOLUME_FRAME,
+                        screenVolumeShape: data.SCREEN_VOLUME_SHAPE,
+                        screenVolume: {
+                            x: parseNumber(data.SCREEN_VOLUME_X),
+                            y: parseNumber(data.SCREEN_VOLUME_Y),
+                            z: parseNumber(data.SCREEN_VOLUME_Z)
+                        },
+                        screenEntryTime: parseDate(data.SCREEN_ENTRY_TIME),
+                        screenExitTime: parseDate(data.SCREEN_EXIT_TIME),
                         commentScreeningOption: data.COMMENT_SCREENING_OPTION,
                         collisionProbability: parseNumber(data.COLLISION_PROBABILITY),
                         collisionProbabilityMethod: data.COLLISION_PROBABILITY_METHOD,
                         commentEffectiveHBR: data.COMMENT_EFFECTIVE_HBR,
                         gid: data.GID,
                         object1: {
+                            comment: data.SAT1_COMMENT,
                             object: data.SAT1_OBJECT,
                             objectDesignator: data.SAT1_OBJECT_DESIGNATOR,
                             catalogName: data.SAT1_CATALOG_NAME,
@@ -196,6 +209,9 @@ async function saveCDMDataToDB(folderId: string) {
                             weightedRms: parseNumber(data.SAT1_WEIGHTED_RMS),
                             areaPC: parseNumber(data.SAT1_AREA_PC),
                             areaPCUnit: data.SAT1_AREA_PC_UNIT,
+                            areaDRG: parseNumber(data.SAT1_AREA_DRG),
+                            areaSRP: parseNumber(data.SAT1_AREA_SRP),
+                            mass: parseNumber(data.SAT1_MASS),
                             cdAreaOverMass: parseNumber(data.SAT1_CD_AREA_OVER_MASS),
                             cdAreaOverMassUnit: data.SAT1_CD_AREA_OVER_MASS_UNIT,
                             crAreaOverMass: parseNumber(data.SAT1_CR_AREA_OVER_MASS),
@@ -259,9 +275,21 @@ async function saveCDMDataToDB(folderId: string) {
                                 csrp_tdot: parseNumber(data.SAT1_CSRP_TDOT),
                                 csrp_ndot: parseNumber(data.SAT1_CSRP_NDOT),
                                 csrp_srp: parseNumber(data.SAT1_CSRP_SRP)
-                            }
+                            },
+                            thrCovariance: {
+                                cthr_r: parseNumber(data.SAT1_CTHR_R),
+                                cthr_t: parseNumber(data.SAT1_CTHR_T),
+                                cthr_n: parseNumber(data.SAT1_CTHR_N),
+                                cthr_rdot: parseNumber(data.SAT1_CTHR_RDOT),
+                                cthr_tdot: parseNumber(data.SAT1_CTHR_TDOT),
+                                cthr_ndot: parseNumber(data.SAT1_CTHR_NDOT),
+                                cthr_drg: parseNumber(data.SAT1_CTHR_DRG),
+                                cthr_srp: parseNumber(data.SAT1_CTHR_SRP),
+                                cthr_thr: parseNumber(data.SAT1_CTHR_THR),
+                            },
                         },
                         object2: {
+                            comment: data.SAT2_COMMENT,
                             object: data.SAT2_OBJECT,
                             objectDesignator: data.SAT2_OBJECT_DESIGNATOR,
                             catalogName: data.SAT2_CATALOG_NAME,
@@ -304,6 +332,9 @@ async function saveCDMDataToDB(folderId: string) {
                             weightedRms: parseNumber(data.SAT2_WEIGHTED_RMS),
                             areaPC: parseNumber(data.SAT2_AREA_PC),
                             areaPCUnit: data.SAT2_AREA_PC_UNIT,
+                            areaDRG: parseNumber(data.SAT2_AREA_DRG),
+                            areaSRP: parseNumber(data.SAT2_AREA_SRP),
+                            mass: parseNumber(data.SAT2_MASS),
                             cdAreaOverMass: parseNumber(data.SAT2_CD_AREA_OVER_MASS),
                             cdAreaOverMassUnit: data.SAT2_CD_AREA_OVER_MASS_UNIT,
                             crAreaOverMass: parseNumber(data.SAT2_CR_AREA_OVER_MASS),
@@ -367,7 +398,18 @@ async function saveCDMDataToDB(folderId: string) {
                                 csrp_tdot: parseNumber(data.SAT2_CSRP_TDOT),
                                 csrp_ndot: parseNumber(data.SAT2_CSRP_NDOT),
                                 csrp_srp: parseNumber(data.SAT2_CSRP_SRP)
-                            }
+                            },
+                            thrCovariance: {
+                                cthr_r: parseNumber(data.SAT2_CTHR_R),
+                                cthr_t: parseNumber(data.SAT2_CTHR_T),
+                                cthr_n: parseNumber(data.SAT2_CTHR_N),
+                                cthr_rdot: parseNumber(data.SAT2_CTHR_RDOT),
+                                cthr_tdot: parseNumber(data.SAT2_CTHR_TDOT),
+                                cthr_ndot: parseNumber(data.SAT2_CTHR_NDOT),
+                                cthr_drg: parseNumber(data.SAT2_CTHR_DRG),
+                                cthr_srp: parseNumber(data.SAT2_CTHR_SRP),
+                                cthr_thr: parseNumber(data.SAT2_CTHR_THR),
+                            },
                         },
                     };
                     if (newData.tca && newData.object1.objectDesignator && newData.object2.objectDesignator) {
