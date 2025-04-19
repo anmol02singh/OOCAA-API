@@ -9,9 +9,12 @@ const placeholderProfileImage = {
     url: 'https://res.cloudinary.com/dzdbnoch9/image/upload/v1741495294/placeholderProfileImage_wsa3w8.png',
 };
 
-//Regex for email validation.
+//Regex for validation.
 //eslint-disable-next-line no-useless-escape
 const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const isUsernameFormat = /^[a-zA-Z0-9_.]+$/;
+const isPasswordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+
 
 //Function for phone number validation.
 const isValidPhoneNumber = (number: string): boolean => {
@@ -76,7 +79,7 @@ export async function register(name: string, email: string, phone: string, usern
         return "Username must contain at least 4 characters.";
     }
 
-    if (!username.match(/^[a-zA-Z0-9_.]+$/)) {
+    if (!username.match(isUsernameFormat)) {
         return "Username can only contain letters, numbers, underscores, and periods.";
     }
 
@@ -84,21 +87,21 @@ export async function register(name: string, email: string, phone: string, usern
         return "Password must contain at least 8 characters.";
     }
 
-    if (!password.match(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/)) {
+    if (!password.match(isPasswordFormat)) {
         return "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character.";
     }
 
     //Check Unique    
     if (await Account.findOne({ email: email }).exec()) {
-        return "This email is taken.";
+        return "This email is already in use.";
     }
 
     if (phone && await Account.findOne({ phoneNumber: phone }).exec()) {
-        return "This phone number is taken.";
+        return "This phone number is already in use.";
     }
 
     if (await Account.findOne({ username: username }).exec()) {
-        return "This username is taken.";
+        return "This username is already in use.";
     }
 
     //Create new account.
