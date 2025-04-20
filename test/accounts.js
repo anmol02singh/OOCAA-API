@@ -1,26 +1,7 @@
 const API_URL = process.env.API_URL || 'http://localhost:3000';
 
 const assert = require('assert');
-describe('register/login', function () {
-	it('should not be able to delete invalid account', async function() {
-		// NOTE: because this test intentionally makes an invalid request,
-		// there will be one error message on the server logs
-		// every time you run this test
-		const response = await fetch(`${API_URL}/deleteOwnAccount`, {
-			method: "DELETE",
-			body: JSON.stringify({
-				token: "does_not_exist"
-			}),
-			headers: {
-				"Content-type": "application/json; charset=UTF-8"
-			}
-		});
-		if (response.ok) {
-			const json = await response.json();
-			assert.equal(false, json.success);
-		}
-	});
-
+describe('Accounts Subsystem', function () {
 	it('should be able to create & delete account', async function() {
 		// create the account
 		const response1 = await fetch(`${API_URL}/register`, {
@@ -57,6 +38,25 @@ describe('register/login', function () {
 
 		const json2 = await response2.json();
 		assert.equal(true, json2.success);
+	});
+
+	it('should not be able to delete invalid account', async function() {
+		// NOTE: because this test intentionally makes an invalid request,
+		// there will be one error message on the server logs
+		// every time you run this test
+		const response = await fetch(`${API_URL}/deleteOwnAccount`, {
+			method: "DELETE",
+			body: JSON.stringify({
+				token: "does_not_exist"
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			}
+		});
+		if (response.ok) {
+			const json = await response.json();
+			assert.equal(false, json.success);
+		}
 	});
 
 	it('should be able to login to existing account from username', async function() {
