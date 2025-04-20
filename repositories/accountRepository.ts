@@ -113,7 +113,7 @@ export async function register(name: string, email: string, phone: string, usern
     //Create new account.
     const salt = bcrypt.genSaltSync(10);
     const hash = bcrypt.hashSync(processedPassword, salt);
-    const account = new Account({ name: processedName, email: processedEmail, phoneNumber: phone, username: processedUsername, passwordHash: hash, role: 1 });
+    const account = new Account({ name: processedName, email: processedEmail, phoneNumber: phone, username: processedUsername, passwordHash: hash, role: 2 });
     if (await account.save()) {
         return "";
     } else {
