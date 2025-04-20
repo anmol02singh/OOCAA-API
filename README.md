@@ -103,7 +103,7 @@ everything should be working, you can test the endpoints via postman or curl
 ## Testing the API
 This system can be tested automatically using the command `npm test`.
 
-These tests will only work if there is an account with username "testuser" and password "testpass".  It also only works when the system is running.
+These tests will only work if there is an account with username "testuser", password "testpass" and email "test@example.com".  It also only works when the system is running.
 
 You can also use any of the following to manually test API endpoints:
 

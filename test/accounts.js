@@ -59,7 +59,7 @@ describe('register/login', function () {
 		assert.equal(true, json2.success);
 	});
 
-	it('should be able to login to existing account', async function() {
+	it('should be able to login to existing account from username', async function() {
 		const response = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
@@ -78,7 +78,26 @@ describe('register/login', function () {
 		assert.equal(true, json.success);
 	});
 
-	it('login should get correct token', async function() {
+	it('should be able to login to existing account from email', async function() {
+		const response = await fetch(`${API_URL}/login`, {
+			method: "POST",
+			body: JSON.stringify({
+				usernameOrEmail: "test@example.com",
+				password: "testpass"
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			}
+		});
+		if (!response.ok) {
+			throw new Error(`Error: ${response.status} - ${response.statusText}`);
+		}
+
+		const json = await response.json();
+		assert.equal(true, json.success);
+	});
+
+	it('username login should get correct token', async function() {
 		const response1 = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
@@ -111,7 +130,40 @@ describe('register/login', function () {
 		assert.equal("testuser", json2.username);
 	});
 
-	it('should not be able to login with wrong password', async function() {
+	it('email login should get correct token', async function() {
+		const response1 = await fetch(`${API_URL}/login`, {
+			method: "POST",
+			body: JSON.stringify({
+				usernameOrEmail: "test@example.com",
+				password: "testpass"
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			}
+		});
+		if (!response1.ok) {
+			throw new Error(`Error: ${response1.status} - ${response1.statusText}`);
+		}
+
+		const json1 = await response1.json();
+		assert.equal(true, json1.success);
+
+		const response2 = await fetch(`${API_URL}/userdata`, {
+			method: "POST",
+			body: JSON.stringify({ token: json1.token }),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			}
+		});
+		if (!response2.ok) {
+			throw new Error(`Error: ${response2.status} - ${response2.statusText}`);
+		}
+
+		const json2 = await response2.json();
+		assert.equal("test@example.com", json2.email);
+	});
+
+	it('should not be able to login with username and wrong password', async function() {
 		const response = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
@@ -130,5 +182,23 @@ describe('register/login', function () {
 		assert.equal(false, json.success);
 	});
 
+	it('should not be able to login with email and wrong password', async function() {
+		const response = await fetch(`${API_URL}/login`, {
+			method: "POST",
+			body: JSON.stringify({
+				usernameOrEmail: "test@example.com",
+				password: "wrongpass"
+			}),
+			headers: {
+				"Content-type": "application/json; charset=UTF-8"
+			}
+		});
+		if (!response.ok) {
+			throw new Error(`Error: ${response.status} - ${response.statusText}`);
+		}
+
+		const json = await response.json();
+		assert.equal(false, json.success);
+	});
 
 });
