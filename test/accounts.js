@@ -27,10 +27,10 @@ describe('register/login', function () {
 			method: "POST",
 			body: JSON.stringify({
 				username: "testusername_createdeleteautotest",
-				password: "testpass",
+				password: "Te$tpas5",
 				name: "testname",
 				email: "testusername_createdeleteautotest@example.com",
-				phone: "5555551234"
+				phone: "+14165554321"
 			}),
 			headers: {
 				"Content-type": "application/json; charset=UTF-8"
@@ -63,7 +63,7 @@ describe('register/login', function () {
 		const response = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
-				username: "testuser",
+				usernameOrEmail: "testuser",
 				password: "testpass"
 			}),
 			headers: {
@@ -82,7 +82,7 @@ describe('register/login', function () {
 		const response1 = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
-				username: "testuser",
+				usernameOrEmail: "testuser",
 				password: "testpass"
 			}),
 			headers: {
@@ -115,7 +115,7 @@ describe('register/login', function () {
 		const response = await fetch(`${API_URL}/login`, {
 			method: "POST",
 			body: JSON.stringify({
-				username: "testuser",
+				usernameOrEmail: "testuser",
 				password: "wrongpass"
 			}),
 			headers: {
