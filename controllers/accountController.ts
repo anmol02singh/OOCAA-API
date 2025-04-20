@@ -42,9 +42,11 @@ function newAccessToken(username: string) {
 }
 
 export async function login(req: Request, res: Response) {
-	const { username, password } = req.body;
+	const { usernameOrEmail, password } = req.body;
 	try {
-		if (!await serviceLogin(username, password)) {
+		const {success, username} = await serviceLogin(usernameOrEmail, password);
+        
+        if (!success || !username) {
 			res.status(200).json({ success: false });
 			return;
 		}
