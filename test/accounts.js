@@ -64,7 +64,7 @@ describe('register/login', function () {
 			method: "POST",
 			body: JSON.stringify({
 				usernameOrEmail: "testuser",
-				password: "testpass"
+				password: "Te$tpa55"
 			}),
 			headers: {
 				"Content-type": "application/json; charset=UTF-8"
@@ -83,7 +83,7 @@ describe('register/login', function () {
 			method: "POST",
 			body: JSON.stringify({
 				usernameOrEmail: "test@example.com",
-				password: "testpass"
+				password: "Te$tpa55"
 			}),
 			headers: {
 				"Content-type": "application/json; charset=UTF-8"
@@ -102,7 +102,7 @@ describe('register/login', function () {
 			method: "POST",
 			body: JSON.stringify({
 				usernameOrEmail: "testuser",
-				password: "testpass"
+				password: "Te$tpa55"
 			}),
 			headers: {
 				"Content-type": "application/json; charset=UTF-8"
@@ -135,7 +135,7 @@ describe('register/login', function () {
 			method: "POST",
 			body: JSON.stringify({
 				usernameOrEmail: "test@example.com",
-				password: "testpass"
+				password: "Te$tpa55"
 			}),
 			headers: {
 				"Content-type": "application/json; charset=UTF-8"
