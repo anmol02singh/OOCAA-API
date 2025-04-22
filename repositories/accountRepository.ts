@@ -322,6 +322,11 @@ export async function updateGeneralUserData(
     }
 };
 
+export async function deleteAccount(username: string): Promise<boolean> {
+    const result = await Account.deleteMany({ username: username }).exec();
+    return result.deletedCount > 0;
+}
+
 export async function updateAccountsRole(
     usernames: string,
     role: number,

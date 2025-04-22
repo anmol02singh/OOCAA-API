@@ -3,10 +3,11 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
+	deleteAccount as serviceDelete,
 	getAccounts as serviceGetAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
-    updateAccountsRole as serviceUpdateAccountsRole,
-    deleteAccounts as serviceDeleteAccounts,
+	updateAccountsRole as serviceUpdateAccountsRole,
+	deleteAccounts as serviceDeleteAccounts,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
@@ -125,6 +126,20 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
+	}
+}
+
+export async function deleteOwnAccount(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token } = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
+		const success = await serviceDelete(username);
+		res.status(200).json({ success: success });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /login" });
 	}
 }
 
