@@ -2,6 +2,7 @@ import {
     register as repoRegister,
     login as repoLogin,
     userdata as repoUserdata,
+    deleteAccount as repoDelete,
     getAccounts as repoGetAccounts,
     updateGeneralUserData as repoUpdateUserData,
     updateAccountsRole as repoUpdateAccountsRole,
@@ -21,6 +22,10 @@ export async function login(usernameOrEmail: string, password: string): Promise<
 
 export async function userdata(username: string): Promise<object> {
     return await repoUserdata(username);
+};
+
+export async function deleteAccount(username: string): Promise<boolean> {
+    return await repoDelete(username);
 };
 
 export async function getAccounts(
