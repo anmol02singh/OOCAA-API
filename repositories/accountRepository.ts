@@ -2,6 +2,7 @@ import Account, { AccountType } from '../models/account';
 import bcrypt from "bcryptjs";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import cloudinary from '../config/cloudinary';
+import { Document, Types } from 'mongoose';
 
 //Placeholder profile picture.
 const placeholderProfileImage = {
@@ -452,3 +453,52 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         throw new Error("Error updating account in database.");
     }
 };
+export const changePassword = async (
+    username: string,
+    currentPassword: string,
+    newPassword: string,
+    
+): Promise<boolean> => {
+    const account = await Account.findOne({ username }).exec();
+    if (!account) throw new Error("User not found");
+    
+    // Verify current password
+    if (!bcrypt.compareSync(currentPassword, account.passwordHash)) {
+        throw new Error("Invalid current password");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const newHash = bcrypt.hashSync(newPassword, salt);
+
+    // Update password
+    const result = await Account.updateOne(
+        { _id: account._id },
+        { $set: { passwordHash: newHash } }
+    ).exec();
+
+    return result.modifiedCount === 1;
+};
+export const changeUsername = async (
+    currentUsername: string,
+    newUsername: string
+): Promise<boolean> => {
+    const result = await Account.updateOne(
+        { username: currentUsername },
+        { $set: { username: newUsername } }
+    ).exec();
+    const updatedUser = await Account.findOne({ username: newUsername }).exec();
+    if (result.matchedCount === 0) {
+        throw new Error("User not found");
+    }
+
+    return result.modifiedCount === 1;
+};
+export async function findUserByUsername(username: string): Promise<(AccountType & Document) | null> {
+    try {
+        const account = await Account.findOne({ username: username }).exec();
+        return account;
+    } catch (error) {
+        console.error(`Error finding user by username:`, error);
+        throw new Error(`Database error while searching for username.`);
+    }
+}
