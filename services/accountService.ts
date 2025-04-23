@@ -2,6 +2,7 @@ import {
     register as repoRegister,
     login as repoLogin,
     userdata as repoUserdata,
+    deleteAccount as repoDelete,
     getAccounts as repoGetAccounts,
     updateGeneralUserData as repoUpdateUserData,
     updateAccountsRole as repoUpdateAccountsRole,
@@ -18,12 +19,16 @@ export async function register(name: string, email: string, phone: string, usern
     return await repoRegister(name, email, phone, username, password);
 };
 
-export async function login(username: string, password: string): Promise<boolean> {
-    return await repoLogin(username, password);
+export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
+    return await repoLogin(usernameOrEmail, password);
 };
 
 export async function userdata(username: string): Promise<object> {
     return await repoUserdata(username);
+};
+
+export async function deleteAccount(username: string): Promise<boolean> {
+    return await repoDelete(username);
 };
 
 export async function getAccounts(
@@ -77,6 +82,7 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
 export async function repairProfileImageSource(currentUsername: string): Promise<boolean> {
     return await repoRepairProfileImageSource(currentUsername);
 }
+
 export async function changePassword(
     currentUsername: string,
     currentPassword: string,
@@ -104,6 +110,7 @@ export async function changePassword(
         };
     }
 }
+
 export async function changeUsername(
     currentUsername: string,
     newUsername: string
