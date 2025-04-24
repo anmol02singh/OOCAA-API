@@ -336,8 +336,8 @@ export async function getAccounts(
                     && (value.$regex === undefined))))
     );
 
-    const test = await Account.find(parameters).exec();
-    return test;
+    const accounts = await Account.find(parameters).exec();
+    return accounts;
 }
 
 export async function updateGeneralUserData(

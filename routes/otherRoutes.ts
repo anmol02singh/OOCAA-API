@@ -1,4 +1,4 @@
-import express, { Router, Request, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import {
     register,
     login,
@@ -14,8 +14,9 @@ import {
     changePassword,
     changeUsername
 } from '../controllers/accountController';
+import { createRoleChangeRequest, getRoleChangeRequests, deleteRoleChangeRequest } from '../controllers/roleChangeRequestController';
 
-const router = express.Router();
+const router = Router();
 
 router.post('/register', register);
 router.post('/login', login);
@@ -30,6 +31,9 @@ router.delete('/deleteAccounts', deleteAccounts);
 router.put('/updateProfileImage', updateProfileImage);
 router.delete('/removeProfileImage', removeProfileImage);
 router.delete('/repairProfileImageSource', repairProfileImageSource);
+router.post('/create-role-change-request', createRoleChangeRequest);
+router.put('/get-role-change-requests', getRoleChangeRequests)
+router.delete('/delete-role-change-request', deleteRoleChangeRequest);
 router.post('/change-password', changePassword);
 router.post('/change-username', (req: Request, res: Response) => {
     changeUsername(req, res).catch(error => {
