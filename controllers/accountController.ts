@@ -3,13 +3,16 @@ import {
 	register as serviceRegister,
 	login as serviceLogin,
 	userdata as serviceUserdata,
+	deleteAccount as serviceDelete,
 	getAccounts as serviceGetAccounts,
 	updateGeneralUserData as serviceUpdateUserData,
-    updateAccountsRole as serviceUpdateAccountsRole,
-    deleteAccounts as serviceDeleteAccounts,
+	updateAccountsRole as serviceUpdateAccountsRole,
+	deleteAccounts as serviceDeleteAccounts,
 	updateProfileImage as serviceUpdateProfileImage,
 	removeProfileImage as serviceRemoveProfileImage,
 	repairProfileImageSource as serviceRepairProfileImageSource,
+	changePassword as serviceChangePassword,
+	changeUsername as serviceChangeUsername
 } from '../services/accountService';
 import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import { AccountType } from '../models/account';
@@ -41,9 +44,11 @@ function newAccessToken(username: string) {
 }
 
 export async function login(req: Request, res: Response) {
-	const { username, password } = req.body;
+	const { usernameOrEmail, password } = req.body;
 	try {
-		if (!await serviceLogin(username, password)) {
+		const {success, username} = await serviceLogin(usernameOrEmail, password);
+        
+        if (!success || !username) {
 			res.status(200).json({ success: false });
 			return;
 		}
@@ -123,6 +128,20 @@ export async function updateGeneralUserData(req: Request, res: Response) {
 	} catch (error) {
 		console.error(error);
 		res.status(500).json({ message: "Internal server error at /updateGeneralUserData" });
+	}
+}
+
+export async function deleteOwnAccount(req: Request, res: Response) {
+	const secret = process.env.JWT_SECRET_KEY;
+	const { token } = req.body;
+	try {
+		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
+		const { username } = jwt.verify(token, secret) as JwtPayload;
+		const success = await serviceDelete(username);
+		res.status(200).json({ success: success });
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ message: "Internal server error at /login" });
 	}
 }
 
@@ -237,3 +256,66 @@ export async function repairProfileImageSource(req: Request, res: Response) {
 		res.status(500).json({ message: "Internal server error at /repairProfileImageSource" });
 	}
 }
+export async function changePassword(req: Request, res: Response) {
+    const secret = process.env.JWT_SECRET_KEY;
+    const { token, currentPassword, newPassword } = req.body;
+    
+    try {
+        if (!secret) throw new Error("JWT_SECRET_KEY is not set");
+        const { username } = jwt.verify(token, secret) as JwtPayload;
+        
+        const result = await serviceChangePassword(username, currentPassword, newPassword);
+        
+        if (result.success) {
+            res.status(200).json({
+                success: true,
+                message: result.message,
+                token: newAccessToken(username)
+            });
+        } else {
+            res.status(400).json(result);
+        }
+    } catch (error) {
+        console.error(error);
+		res.status(500).json({ message: "Invalid" });
+    }
+}
+export async function changeUsername(req: Request, res: Response) {
+    const secret = process.env.JWT_SECRET_KEY;
+    const { token, newUsername } = req.body; 
+    if (!secret) {
+         console.error("JWT_SECRET_KEY is not set"); 
+         return res.status(500).json({ message: "Server configuration error" }); 
+    }
+
+    if (!token || typeof token !== 'string' || token.split('.').length !== 3) {
+        console.error('Malformed token received on backend:', token);
+        return res.status(400).json({ success: false, message: "Malformed token received." });
+    }
+
+    try { 
+        const decoded = jwt.verify(token, secret) as JwtPayload; 
+        const currentUsername = decoded.username;
+
+        const result = await serviceChangeUsername(currentUsername, newUsername); 
+
+        if (result.success) { 
+            const newToken = newAccessToken(newUsername); 
+            res.status(200).json({  
+                success: true,
+                message: result.message,
+                token: newToken
+            });
+        } else {
+            res.status(400).json(result); 
+        }
+    } catch (error) {
+         if (error instanceof jwt.JsonWebTokenError) {
+            console.error("JWT Error:", error.message);
+            return res.status(401).json({ success: false, message: `Authentication Error: ${error.message}` });
+         }
+         console.error("Error during username change:", error);
+         return res.status(500).json({ success: false, message: "An internal server error occurred." });
+    }
+}
+

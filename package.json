@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.ts",
   "scripts": {
-    "devStart": "cross-env NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts"
+    "devStart": "cross-env NODE_OPTIONS=--max_old_space_size=8192 nodemon server.ts",
+    "test": "mocha"
   },
   "keywords": [],
   "author": "",
@@ -36,6 +37,7 @@
     "dotenv": "^16.4.5",
     "eslint": "^9.15.0",
     "globals": "^15.12.0",
+    "mocha": "^11.1.0",
     "nodemon": "^3.1.7",
     "typescript-eslint": "^8.15.0"
   }

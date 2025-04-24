@@ -2,6 +2,7 @@ import Account, { AccountType } from '../models/account';
 import bcrypt from "bcryptjs";
 import { parsePhoneNumberFromString, PhoneNumber } from "libphonenumber-js";
 import cloudinary from '../config/cloudinary';
+import { Document, Types } from 'mongoose';
 
 //Placeholder profile picture.
 const placeholderProfileImage = {
@@ -9,9 +10,13 @@ const placeholderProfileImage = {
     url: 'https://res.cloudinary.com/dzdbnoch9/image/upload/v1741495294/placeholderProfileImage_wsa3w8.png',
 };
 
-//Regex for email validation.
+//Regex for validation.
+const containsExtraSpaces = /\s+/g;
 //eslint-disable-next-line no-useless-escape
 const isEmailFormat = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const isUsernameFormat = /^[a-zA-Z0-9_.]+$/;
+const isPasswordFormat = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/;
+
 
 //Function for phone number validation.
 const isValidPhoneNumber = (number: string): boolean => {
@@ -26,7 +31,6 @@ const isValidPhoneNumber = (number: string): boolean => {
 export const validateUserData = async (
     account: AccountType,
     newName?: string,
-    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{ success: boolean; message: string }> => {
@@ -39,7 +43,7 @@ export const validateUserData = async (
         return { success: false, message: "Please enter a new email." };
     }
     if (newEmail && !newEmail.match(isEmailFormat)) {
-        return { success: false, message: "Please enter a vailid email." };
+        return { success: false, message: "Please enter a valid email." };
     }
 
     if (newPhone && newPhone === account.phoneNumber) {
@@ -63,19 +67,54 @@ export const validateUserData = async (
 
 // if an error happens, returns a string containing that error, else returns ""
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
-    if (await Account.findOne({ username: username }).exec()) {
-        return "This username is taken.";
-    }
-    if (await Account.findOne({ email: email }).exec()) {
-        return "This email is taken.";
-    }
-    if (phone && await Account.findOne({ phoneNumber: phone }).exec()) {
-        return "This phone number is taken.";
+    
+    const processedName = name.replace(containsExtraSpaces, ' ').trim();
+    const processedEmail = email.toLowerCase().trim();
+    const processedUsername = username.replace(containsExtraSpaces, "");
+    const processedPassword = password.replace(containsExtraSpaces, "");
+
+    //Check Valid
+    if (!processedEmail.match(isEmailFormat)) {
+        return "Please enter a valid email.";
     }
 
+    if (phone && !isValidPhoneNumber(phone)) {
+        return "Please enter a valid phone number.";
+    }
+
+    if (processedUsername.length < 4) {
+        return "Username must contain at least 4 characters.";
+    }
+
+    if (!processedUsername.match(isUsernameFormat)) {
+        return "Username can only contain letters, numbers, underscores, and periods.";
+    }
+
+    if (processedPassword.length < 8) {
+        return "Password must contain at least 8 characters.";
+    }
+
+    if (!processedPassword.match(isPasswordFormat)) {
+        return "Password must contain at least 1 lowercase letter, 1 uppercase letter, 1 number, and 1 special character.";
+    }
+
+    //Check Unique    
+    if (await Account.findOne({ email: processedEmail }).exec()) {
+        return "This email is already in use.";
+    }
+
+    if (phone && await Account.findOne({ phoneNumber: phone }).exec()) {
+        return "This phone number is already in use.";
+    }
+
+    if (await Account.findOne({ username: processedUsername }).exec()) {
+        return "This username is already in use.";
+    }
+
+    //Create new account.
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
-    const account = new Account({ name: name, email: email, phoneNumber: phone, username: username, passwordHash: hash, role: 1 });
+    const hash = bcrypt.hashSync(processedPassword, salt);
+    const account = new Account({ name: processedName, email: processedEmail, phoneNumber: phone, username: processedUsername, passwordHash: hash, role: 2 });
     if (await account.save()) {
         return "";
     } else {
@@ -83,10 +122,22 @@ export async function register(name: string, email: string, phone: string, usern
     }
 };
 
-export async function login(username: string, password: string): Promise<boolean> {
-    const account = await Account.findOne({ username: username }).exec();
-    await repairProfileImageSource(username);
-    return account ? bcrypt.compareSync(password, account.passwordHash) : false;
+export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
+    let processedUsernameOrEmail = usernameOrEmail.trim();
+    const processedPassword = password.replace(containsExtraSpaces, "");
+    
+    let account = undefined;
+    if(usernameOrEmail.includes("@")){
+        processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase();
+        account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
+    } else {
+        account = await Account.findOne({ username: processedUsernameOrEmail }).exec();
+    }
+
+    if(!account) return {success: false, username: undefined};
+        
+    await repairProfileImageSource(account.username);
+    return {success: bcrypt.compareSync(processedPassword, account.passwordHash), username: account.username};
 };
 
 /*
@@ -234,14 +285,12 @@ export async function getAccounts(
 export async function updateGeneralUserData(
     currentUsername: string,
     newName?: string,
-    // newUsername?: string,
     newEmail?: string,
     newPhone?: string
 ): Promise<{ success: boolean; message: string }> {
 
     //Check if at least 1 piece of new data was given and cancel data updating if not.
     if (newName === undefined
-        //&& !newUsername
         && !newEmail
         && newPhone === undefined
     ) {
@@ -252,15 +301,17 @@ export async function updateGeneralUserData(
     const account = await Account.findOne({ username: currentUsername }).exec();
     if (!account) return { success: false, message: "User account update cancelled: account with given username could not be found." };
 
+    const processedName = newName ? newName.replace(containsExtraSpaces, ' ').trim() : newName;
+    const processedEmail = newEmail ? newEmail.toLowerCase().trim() : newEmail;
+
     //Validate data.
-    const dataValidation = await validateUserData(account, newName, newEmail, newPhone);
+    const dataValidation = await validateUserData(account, processedName, processedEmail, newPhone);
     if (!dataValidation.success) return dataValidation;
 
     //Updated user account object.
     const updatedAccount = {
-        name: newName !== undefined ? newName : account.name,
-        // username: newUsername ? newUsername : account.username,
-        email: newEmail ? newEmail : account.email,
+        name: processedName !== undefined ? processedName : account.name,
+        email: processedEmail ? processedEmail : account.email,
         phoneNumber: newPhone !== undefined ? newPhone : account.phoneNumber,
     };
 
@@ -271,6 +322,11 @@ export async function updateGeneralUserData(
         throw new Error("Error updating account in database.");
     }
 };
+
+export async function deleteAccount(username: string): Promise<boolean> {
+    const result = await Account.deleteMany({ username: username }).exec();
+    return result.deletedCount > 0;
+}
 
 export async function updateAccountsRole(
     usernames: string,
@@ -397,3 +453,52 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         throw new Error("Error updating account in database.");
     }
 };
+export const changePassword = async (
+    username: string,
+    currentPassword: string,
+    newPassword: string,
+    
+): Promise<boolean> => {
+    const account = await Account.findOne({ username }).exec();
+    if (!account) throw new Error("User not found");
+    
+    // Verify current password
+    if (!bcrypt.compareSync(currentPassword, account.passwordHash)) {
+        throw new Error("Invalid current password");
+    }
+
+    const salt = bcrypt.genSaltSync(10);
+    const newHash = bcrypt.hashSync(newPassword, salt);
+
+    // Update password
+    const result = await Account.updateOne(
+        { _id: account._id },
+        { $set: { passwordHash: newHash } }
+    ).exec();
+
+    return result.modifiedCount === 1;
+};
+export const changeUsername = async (
+    currentUsername: string,
+    newUsername: string
+): Promise<boolean> => {
+    const result = await Account.updateOne(
+        { username: currentUsername },
+        { $set: { username: newUsername } }
+    ).exec();
+    const updatedUser = await Account.findOne({ username: newUsername }).exec();
+    if (result.matchedCount === 0) {
+        throw new Error("User not found");
+    }
+
+    return result.modifiedCount === 1;
+};
+export async function findUserByUsername(username: string): Promise<(AccountType & Document) | null> {
+    try {
+        const account = await Account.findOne({ username: username }).exec();
+        return account;
+    } catch (error) {
+        console.error(`Error finding user by username:`, error);
+        throw new Error(`Database error while searching for username.`);
+    }
+}
