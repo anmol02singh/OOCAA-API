@@ -5,8 +5,21 @@ import tseslint from "typescript-eslint";
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-  {files: ["**/*.{js,mjs,cjs,ts}"]},
-  {languageOptions: { globals: globals.browser }},
-  pluginJs.configs.recommended,
-  ...tseslint.configs.recommended,
+    { files: ["**/*.{js,mjs,cjs,ts}"] },
+    {
+        languageOptions: {
+            globals: {
+                ...globals.browser,
+                ...globals.node,
+            }
+        }
+    },
+    pluginJs.configs.recommended,
+    ...tseslint.configs.recommended,
+    {
+        files: ['**/*.js'],
+        env: {
+            mocha: true,
+        },
+    },
 ];
