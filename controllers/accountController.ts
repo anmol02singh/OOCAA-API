@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { sendEmail } from '../services/mailer';
 import {
 	register as serviceRegister,
 	login as serviceLogin,
@@ -25,6 +26,18 @@ export async function register(req: Request, res: Response) {
 			res.status(200).json({ success: false, error: error });
 			return;
 		}
+		// Send welcome email after successful registration
+		await sendEmail(
+			email,
+			'👋 Welcome to OOCAA!',
+			`
+			<p>Hi ${name || username},</p>
+			<p>Welcome to the Online Orbital Collision Alert and Analysis (OOCAA) platform!</p>
+			<p>You can now set up satellite watchlists, subscribe to conjunction filters, and receive real-time alerts.</p>
+			<p>Thanks for joining us. 🛰️</p>
+			<p>— The OOCAA Team</p>
+			`
+		);
 
 		res.status(201).json({ success: true, token: newAccessToken(username) });
 	} catch (error) {
