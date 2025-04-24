@@ -67,7 +67,7 @@ export const validateUserData = async (
 
 // if an error happens, returns a string containing that error, else returns ""
 export async function register(name: string, email: string, phone: string, username: string, password: string): Promise<string> {
-    
+
     const processedName = name.replace(containsExtraSpaces, ' ').trim();
     const processedEmail = email.toLowerCase().trim();
     const processedUsername = username.replace(containsExtraSpaces, "");
@@ -122,22 +122,22 @@ export async function register(name: string, email: string, phone: string, usern
     }
 };
 
-export async function login(usernameOrEmail: string, password: string): Promise<{success: boolean, username: string | undefined}> {
+export async function login(usernameOrEmail: string, password: string): Promise<{ success: boolean, username: string | undefined }> {
     let processedUsernameOrEmail = usernameOrEmail.trim();
     const processedPassword = password.replace(containsExtraSpaces, "");
-    
+
     let account = undefined;
-    if(usernameOrEmail.includes("@")){
+    if (usernameOrEmail.includes("@")) {
         processedUsernameOrEmail = processedUsernameOrEmail.toLowerCase();
         account = await Account.findOne({ email: processedUsernameOrEmail }).exec();
     } else {
         account = await Account.findOne({ username: processedUsernameOrEmail }).exec();
     }
 
-    if(!account) return {success: false, username: undefined};
-        
+    if (!account) return { success: false, username: undefined };
+
     await repairProfileImageSource(account.username);
-    return {success: bcrypt.compareSync(processedPassword, account.passwordHash), username: account.username};
+    return { success: bcrypt.compareSync(processedPassword, account.passwordHash), username: account.username };
 };
 
 /*
@@ -536,15 +536,16 @@ export async function removeProfileImage(currentUsername: string): Promise<boole
         throw new Error("Error updating account in database.");
     }
 };
+
 export const changePassword = async (
     username: string,
     currentPassword: string,
     newPassword: string,
-    
+
 ): Promise<boolean> => {
     const account = await Account.findOne({ username }).exec();
     if (!account) throw new Error("User not found");
-    
+
     // Verify current password
     if (!bcrypt.compareSync(currentPassword, account.passwordHash)) {
         throw new Error("Invalid current password");
@@ -561,6 +562,7 @@ export const changePassword = async (
 
     return result.modifiedCount === 1;
 };
+
 export const changeUsername = async (
     currentUsername: string,
     newUsername: string
@@ -576,6 +578,7 @@ export const changeUsername = async (
 
     return result.modifiedCount === 1;
 };
+
 export async function findUserByUsername(username: string): Promise<(AccountType & Document) | null> {
     try {
         const account = await Account.findOne({ username: username }).exec();
