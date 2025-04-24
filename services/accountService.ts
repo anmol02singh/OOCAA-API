@@ -32,6 +32,7 @@ export async function deleteAccount(username: string): Promise<boolean> {
 };
 
 export async function getAccounts(
+    _id?: string,
     name?: string,
     username?: string,
     role?: number,
@@ -39,6 +40,7 @@ export async function getAccounts(
     phoneNumber?: string,
 ): Promise<object>{
     return await repoGetAccounts(
+        _id,
         name,
         username,
         role,

@@ -316,6 +316,7 @@ export async function userdata(username: string): Promise<object> {
 }
 
 export async function getAccounts(
+    _id?: string,
     name?: string,
     username?: string,
     role?: number,
@@ -324,6 +325,7 @@ export async function getAccounts(
 ): Promise<object> {
     const parameters = Object.fromEntries(
         Object.entries({
+            _id: _id,
             name: name === "" ? name : { $regex: name, $options: "i" },
             username: { $regex: username, $options: "i" },
             role,

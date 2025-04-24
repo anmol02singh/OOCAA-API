@@ -78,6 +78,7 @@ export async function getAccounts(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
 	const {
 		token,
+        _id,
 		name,
 		username,
 		role,
@@ -104,7 +105,8 @@ export async function getAccounts(req: Request, res: Response) {
 
 		//Get and return accounts.
 		const accounts  = await serviceGetAccounts(
-			name,
+			_id,
+            name,
 			username,
 			role,
 			email,

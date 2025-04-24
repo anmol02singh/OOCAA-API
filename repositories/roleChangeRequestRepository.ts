@@ -6,24 +6,30 @@ export const createRoleChangeRequest = async (username: string, creationTime: st
     const account = await Account.findOne({ username: username }).exec();
     if (!account) return false;
 
-    const newChangeRequest = new RoleChangeRequest({
-        accountId: account._id,
-        creationTime: creationTime,
-        newRole: newRole,
-    });
-
     //Check if there's an existing request.
     const changeRequest = await RoleChangeRequest.findOne({ accountId: account._id }).exec();
 
     //If there's an existing request, update the request, otherwise create a new request from scratch.
     if (changeRequest) {
-        const result = await RoleChangeRequest.updateOne({ id: changeRequest.id }, newChangeRequest).exec();
+        const newChangeRequest = {
+            accountId: account._id,
+            creationTime: creationTime,
+            newRole: newRole,
+        };
+
+        const result = await RoleChangeRequest.updateOne({ _id: changeRequest._id }, newChangeRequest).exec();
         if (result.matchedCount > 0 && result.modifiedCount > 0) {
             return true;
         } else {
             throw new Error("Error updating role change request in database.");
         }
     } else {
+        const newChangeRequest = new RoleChangeRequest({
+            accountId: account._id,
+            creationTime: creationTime,
+            newRole: newRole,
+        });
+
         if (await newChangeRequest.save()) {
             return true;
         } else {
@@ -60,7 +66,7 @@ export const getRoleChangeRequests = async (
 
         roleReqParameters = Object.fromEntries(
             Object.entries({
-                accountId: { $regex: account._id, $options: "i" },
+                accountId: `${account._id}`,
                 creationTime: { $regex: creationTime, $options: "i" },
                 newRole,
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -79,10 +85,10 @@ export const getRoleChangeRequests = async (
     return roleChangeRequests;
 }
 
-export const deleteRoleChangeRequest = async (id: number): Promise<boolean> => {
+export const deleteRoleChangeRequest = async (id: string): Promise<boolean> => {
 
     //Delete role change request object.
-    const result = await RoleChangeRequest.deleteMany({ id: id }).exec()
+    const result = await RoleChangeRequest.deleteMany({ _id: id }).exec()
     if (result.deletedCount > 0) {
         return true;
     } else {
