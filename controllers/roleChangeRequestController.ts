@@ -75,7 +75,7 @@ export const deleteRoleChangeRequest = async (req: Request, res: Response) => {
     const secret = process.env.JWT_SECRET_KEY;
     const {
         token,
-        id,
+        _id,
     } = req.body;
     try {
         if (!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
@@ -96,7 +96,7 @@ export const deleteRoleChangeRequest = async (req: Request, res: Response) => {
         if (!isAdmin) return;
 
         //Delete role change request.
-        const result = await serviceDeleteRoleChangeRequest(id);
+        const result = await serviceDeleteRoleChangeRequest(_id);
         res.status(200).json(result);
     } catch (error) {
         console.error(error);

@@ -24,6 +24,6 @@ export const getRoleChangeRequests = async (
     );
 }
 
-export const deleteRoleChangeRequest = async (id: string): Promise<boolean> => {
-    return await repoDeleteRoleChangeRequest(id);
+export const deleteRoleChangeRequest = async (_id: string): Promise<boolean> => {
+    return await repoDeleteRoleChangeRequest(_id);
 }

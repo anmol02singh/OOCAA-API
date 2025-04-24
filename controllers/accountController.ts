@@ -121,11 +121,11 @@ export async function getAccounts(req: Request, res: Response) {
 
 export async function updateGeneralUserData(req: Request, res: Response) {
 	const secret = process.env.JWT_SECRET_KEY;
-	const { token, newName, /*newUsername,*/ newEmail, newPhone } = req.body;
+	const { token, newName, newEmail, newPhone } = req.body;
 	try {
 		if(!secret) throw new Error("JWT_SECRET_KEY is not set in environment variables");
 		const { username } = jwt.verify(token, secret) as JwtPayload;
-		const result = await serviceUpdateUserData(username, newName, /*newUsername,*/ newEmail, newPhone);
+		const result = await serviceUpdateUserData(username, newName, newEmail, newPhone);
 		res.status(200).json(result);
 	} catch (error) {
 		console.error(error);

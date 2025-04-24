@@ -1,8 +1,10 @@
+import mongoose from 'mongoose';
 import Account from '../models/account';
 import RoleChangeRequest, { RoleChangeRequestType } from '../models/roleChangeRequest';
 
 export const createRoleChangeRequest = async (username: string, creationTime: string, newRole: number): Promise<boolean> => {
-    //Get the logged in user's account. If it returns null despute the token passing, cancel the creation.
+    
+    //Get the logged in user's account. If it returns null despite the token passing, cancel the creation.
     const account = await Account.findOne({ username: username }).exec();
     if (!account) return false;
 
@@ -45,50 +47,61 @@ export const getRoleChangeRequests = async (
     role?: number,
     newRole?: number,
 ): Promise<object> => {
-    const accountParameters = Object.fromEntries(
+
+    // Get role change requests matching given creation time and new role search params.
+    let roleChangeRequests: RoleChangeRequestType[] = [];
+    const roleReqParameters = Object.fromEntries(
         Object.entries({
-            name: name === "" ? name : { $regex: name, $options: "i" },
-            username: { $regex: username, $options: "i" },
-            role,
+            creationTime: { $regex: creationTime, $options: "i" },
+            newRole,
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).filter(([key, value]) =>
             !(value === undefined
                 || ((typeof value !== 'number' && typeof value !== 'string')
-                    && (value.$regex === undefined))))
+                    && (value.$regex === undefined))
+            )
+        )
     );
 
-    const accounts = await Account.find(accountParameters).exec();
+    roleChangeRequests = [...(await RoleChangeRequest.find(roleReqParameters).exec())];
 
-    let roleChangeRequests: RoleChangeRequestType[] = [];
-    let roleReqParameters = {};
-    for (const account of accounts) {
-        if (!account) continue;
+    // Remove the requests that belong to accounts that don't match the given username, name,
+    // and role search params.
+    if (username || name || role) {
+        roleChangeRequests = (
+            await Promise.all(
+                roleChangeRequests.map(async (roleReq) => {
+                    const accountParameters = Object.fromEntries(
+                        Object.entries({
+                            _id: roleReq.accountId
+                                ? new mongoose.Types.ObjectId(roleReq.accountId)
+                                : roleReq.accountId,
+                            name: name === "" ? name : { $regex: name, $options: "i" },
+                            username: { $regex: username, $options: "i" },
+                            role,
+                            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        }).filter(([key, value]) =>
+                            !(value === undefined
+                                || ((typeof value !== "number" && typeof value !== "string" && !(value instanceof mongoose.Types.ObjectId))
+                                    && value?.$regex === undefined)
+                            )
+                        )
+                    );
 
-        roleReqParameters = Object.fromEntries(
-            Object.entries({
-                accountId: `${account._id}`,
-                creationTime: { $regex: creationTime, $options: "i" },
-                newRole,
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            }).filter(([key, value]) =>
-                !(value === undefined
-                    || ((typeof value !== 'number' && typeof value !== 'string')
-                        && (value.$regex === undefined))))
-        );
-
-        roleChangeRequests = [
-            ...roleChangeRequests,
-            ...(await RoleChangeRequest.find(roleReqParameters).exec())
-        ];
+                    const account = await Account.findOne(accountParameters).exec();
+                    return account ? roleReq : null;
+                })
+            )
+        ).filter((roleReq) => roleReq !== null);
     }
 
     return roleChangeRequests;
 }
 
-export const deleteRoleChangeRequest = async (id: string): Promise<boolean> => {
+export const deleteRoleChangeRequest = async (_id: string): Promise<boolean> => {
 
     //Delete role change request object.
-    const result = await RoleChangeRequest.deleteMany({ _id: id }).exec()
+    const result = await RoleChangeRequest.deleteMany({ _id: _id }).exec()
     if (result.deletedCount > 0) {
         return true;
     } else {
