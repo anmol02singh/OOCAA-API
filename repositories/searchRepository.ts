@@ -20,7 +20,7 @@ export const findLimitedEvents = async (query: any) => {
 
 export async function getAllEventsFromDB() {
   try {
-    return await Event.find();
+    return await Event.find().limit(100);
   } catch (error) {
     console.error("Error in repository (getAllEventsFromDB):", error);
     throw error;
