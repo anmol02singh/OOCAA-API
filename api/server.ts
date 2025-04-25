@@ -19,4 +19,4 @@ app.use(bodyParser.urlencoded({ limit: "150kb", extended: true }));
 app.use("/cdm-data", cdmRoutes);
 app.use("/", otherRoutes);
 
-app.listen(3000, () => console.log("Server Started"));
+export default app;
