@@ -1,5 +1,14 @@
 import { SearchParams, TcaRange } from '../config/types'; 
-import { findEvents } from '../repositories/searchRepository';
+import { findEvents, getAllEventsFromDB } from '../repositories/searchRepository';
+
+export async function fetchAllEvents() {
+  try {
+    return await getAllEventsFromDB();
+  } catch (error) {
+    console.error("Error in service (fetchAllEvents):", error);
+    throw error;
+  }
+};
 
 export const getEvents = async (
   searchParams: SearchParams[], 
@@ -75,7 +84,11 @@ export const getEvents = async (
         operator = { $gte: extraFilters.collisionProbabilityValue };
         break;
       case 'eq':
-        operator = { $eq: extraFilters.collisionProbabilityValue };
+        const tolerance = extraFilters.collisionProbabilityValue * 0.05;
+        operator = { 
+          $gte: extraFilters.collisionProbabilityValue - tolerance, 
+          $lte: extraFilters.collisionProbabilityValue + tolerance 
+        };
         break;
     }
     additionalFilters.push({ 

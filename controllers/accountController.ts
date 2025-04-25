@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { sendEmail } from '../services/mailer';
 import {
 	register as serviceRegister,
 	login as serviceLogin,
@@ -25,6 +26,46 @@ export async function register(req: Request, res: Response) {
 			res.status(200).json({ success: false, error: error });
 			return;
 		}
+		// Send welcome email after successful registration
+		await sendEmail(
+			email,
+			'Welcome to OOCAA!',
+			`
+			  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 8px; padding: 24px; background-color: #f9f9f9;">
+				<h2 style="color: #0057a8;">Hi ${name || username},</h2>
+		  
+				<p style="font-size: 16px; color: #333;">
+				  Welcome to the <strong style="color: #6870fa;">On-Orbit Collision Avoidance Assistant (OOCAA)</strong> platform!
+				</p>
+		  
+				<p style="font-size: 16px; color: #333;">
+				  You can now:
+				</p>
+		  
+				<ul style="font-size: 16px; padding-left: 20px; color: #444;">
+				  <li><strong>Create satellite watchlists</strong> to monitor specific objects</li>
+				  <li><strong>Subscribe to custom conjunction filters</strong></li>
+				  <li><strong>Receive real-time alerts</strong> when threats are detected</li>
+				</ul>
+		  
+				<p style="font-size: 16px; color: #333;">
+				  Thanks for joining us on our mission to keep space safe. 🛰️
+				</p>
+		  
+				<div style="margin-top: 30px; text-align: center;">
+				  <a href="http://localhost:3001/dashboard" style="background-color: #6870fa; color: white; padding: 12px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+					 Go to Dashboard
+				  </a>
+				</div>
+		  
+				<p style="margin-top: 40px; font-size: 14px; color: #888;">
+				  — The OOCAA Team<br />
+				  Keeping space safe, one alert at a time.
+				</p>
+			  </div>
+			`
+		  );
+		  
 
 		res.status(201).json({ success: true, token: newAccessToken(username) });
 	} catch (error) {
