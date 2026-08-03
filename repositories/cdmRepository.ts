@@ -102,8 +102,24 @@ async function getCDMCounts(): Promise<ObjectTypeCounts> {
     {
       $project: {
         objects: [
-          { type: '$object1.objectType', designator: '$object1.objectDesignator' },
-          { type: '$object2.objectType', designator: '$object2.objectDesignator' }
+          {
+            type: {
+              $let: {
+                vars: { t: { $ifNull: ['$object1.objectType', 'UNKNOWN'] } },
+                in: { $cond: [{ $eq: ['$$t', ''] }, 'UNKNOWN', '$$t'] }
+              }
+            },
+            designator: '$object1.objectDesignator'
+          },
+          {
+            type: {
+              $let: {
+                vars: { t: { $ifNull: ['$object2.objectType', 'UNKNOWN'] } },
+                in: { $cond: [{ $eq: ['$$t', ''] }, 'UNKNOWN', '$$t'] }
+              }
+            },
+            designator: '$object2.objectDesignator'
+          }
         ]
       }
     },
